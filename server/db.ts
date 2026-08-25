@@ -1,6 +1,6 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { analystNotebooks, analystPlanVersions, analystPlans, analystVisualizations, articleDocuments, articleExtractions, ArticleExtraction, articleScreenings, grantOpportunities, InsertUser, lapisAcademicRecordSearches, lapisAnalyses, lapisGrantSelections, lapisManuscripts, lapisMethods, lapisMilestones, lapisPreregistrationDevilReviews, lapisPreregistrations, lapisProjects, literatureImportBatches, matchmakerSubmissions, narrativeThemes, projectSyntheses, qualiaCodeSuggestions, qualiaCodes, qualiaCodingDecisions, qualiaCorpora, qualiaExcerpts, qualiaMemos, qualiaSources, reviewProjects, savedArticles, scriptoriumDocuments, scriptoriumSubstanceReviews, scriptoriumVersions, scriptoriumZoteroConnections, scriptoriumZoteroItems, users, vaultDataDictionaries, vaultDatasetVersions, vaultDatasets, vaultFiles, vaultGovernanceRecords, vaultRepositoryAuthorizations, vaultRepositoryPlans, vigilAssessments } from "../drizzle/schema";
+import { analystNotebooks, analystPlanVersions, analystPlans, analystVisualizations, articleDocuments, articleDuplicateReviews, articleExtractions, ArticleExtraction, articleScreenings, grantOpportunities, InsertUser, lapisAcademicRecordSearches, lapisAnalyses, lapisGrantSelections, lapisManuscripts, lapisMethods, lapisMilestones, lapisPreregistrationDevilReviews, lapisPreregistrations, lapisProjects, literatureImportBatches, matchmakerSubmissions, narrativeThemes, projectSyntheses, qualiaCodeSuggestions, qualiaCodes, qualiaCodingDecisions, qualiaCorpora, qualiaExcerpts, qualiaMemos, qualiaSources, reviewProjects, savedArticles, scriptoriumDocuments, scriptoriumSubstanceReviews, scriptoriumVersions, scriptoriumZoteroConnections, scriptoriumZoteroItems, users, vaultDataDictionaries, vaultDatasetVersions, vaultDatasets, vaultFiles, vaultGovernanceRecords, vaultRepositoryAuthorizations, vaultRepositoryPlans, vigilAssessments } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -120,6 +120,27 @@ export async function getArticleForProject(articleId: number, projectId: number)
   if (!db) return undefined;
   const rows = await db.select().from(savedArticles).where(and(eq(savedArticles.id, articleId), eq(savedArticles.projectId, projectId))).limit(1);
   return rows[0];
+}
+
+export async function getArticleDuplicateReviews(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(articleDuplicateReviews).where(eq(articleDuplicateReviews.projectId, projectId)).orderBy(desc(articleDuplicateReviews.reviewedAt));
+}
+
+export async function upsertArticleDuplicateReview(input: {
+  projectId: number;
+  articleIdA: number;
+  articleIdB: number;
+  similarityScore: number;
+  decision: "same_study" | "distinct";
+  reviewerNote?: string | null;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.insert(articleDuplicateReviews).values({ ...input, reviewerNote: input.reviewerNote || null }).onDuplicateKeyUpdate({
+    set: { similarityScore: input.similarityScore, decision: input.decision, reviewerNote: input.reviewerNote || null, reviewedAt: new Date() },
+  });
 }
 
 export async function getExtraction(articleId: number): Promise<ArticleExtraction | undefined> {
@@ -247,6 +268,7 @@ export async function removeSavedArticle(articleId: number) {
   await db.delete(articleExtractions).where(eq(articleExtractions.articleId, articleId));
   await db.delete(articleScreenings).where(eq(articleScreenings.articleId, articleId));
   await db.delete(articleDocuments).where(eq(articleDocuments.articleId, articleId));
+  await db.delete(articleDuplicateReviews).where(or(eq(articleDuplicateReviews.articleIdA, articleId), eq(articleDuplicateReviews.articleIdB, articleId)));
   await db.delete(savedArticles).where(eq(savedArticles.id, articleId));
 }
 

@@ -75,6 +75,20 @@ export const savedArticles = mysqlTable("saved_articles", {
   uniqueIndex("saved_articles_project_external_unique").on(table.projectId, table.externalId),
 ]);
 
+export const articleDuplicateReviews = mysqlTable("article_duplicate_reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  articleIdA: int("articleIdA").notNull(),
+  articleIdB: int("articleIdB").notNull(),
+  similarityScore: int("similarityScore").notNull(),
+  decision: mysqlEnum("decision", ["same_study", "distinct"]).notNull(),
+  reviewerNote: text("reviewerNote"),
+  reviewedAt: timestamp("reviewedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("article_duplicate_reviews_project_pair_unique").on(table.projectId, table.articleIdA, table.articleIdB),
+  index("article_duplicate_reviews_project_idx").on(table.projectId),
+]);
+
 export const articleExtractions = mysqlTable("article_extractions", {
   id: int("id").autoincrement().primaryKey(),
   articleId: int("articleId").notNull(),

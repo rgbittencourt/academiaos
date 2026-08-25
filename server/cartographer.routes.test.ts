@@ -4,7 +4,7 @@ import type { TrpcContext } from "./_core/context";
 vi.mock("./db", () => ({
   getProjectsByUserId: vi.fn(), createReviewProject: vi.fn(), getProjectForUser: vi.fn(),
   getSavedArticles: vi.fn(), getProjectMetrics: vi.fn(), getProjectSynthesis: vi.fn(),
-  getExtraction: vi.fn(), saveArticle: vi.fn(), getArticleForProject: vi.fn(),
+  getExtraction: vi.fn(), saveArticle: vi.fn(), getArticleForProject: vi.fn(), getArticleDuplicateReviews: vi.fn(), upsertArticleDuplicateReview: vi.fn(),
   setArticleReadState: vi.fn(), removeSavedArticle: vi.fn(), upsertExtraction: vi.fn(), setProjectSynthesis: vi.fn(),
   getArticleDocument: vi.fn(), upsertArticleDocument: vi.fn(), saveRisImportBatch: vi.fn(),
   getProjectScreenings: vi.fn(), upsertArticleScreening: vi.fn(), getNarrativeThemes: vi.fn(), createNarrativeTheme: vi.fn(), updateNarrativeTheme: vi.fn(), removeNarrativeTheme: vi.fn(),
@@ -55,6 +55,7 @@ describe("cartographer routes", () => {
     vi.mocked(db.getExtraction).mockResolvedValue(null as never);
     vi.mocked(db.getProjectScreenings).mockResolvedValue([] as never);
     vi.mocked(db.getNarrativeThemes).mockResolvedValue([] as never);
+    vi.mocked(db.getArticleDuplicateReviews).mockResolvedValue([] as never);
     vi.mocked(db.getLapisProjectForUser).mockResolvedValue(lapisProject as never);
     vi.mocked(db.getLapisAnalyses).mockResolvedValue([] as never);
     vi.mocked(db.getLapisMethod).mockResolvedValue(null as never);
@@ -110,6 +111,19 @@ describe("cartographer routes", () => {
     expect(overview).toMatchObject({ project, metrics: { saved: 1, read: 1, extracted: 1 }, synthesis: { status: "ready", content: "Atenção foi reduzida [1]." } });
     expect(overview.articles[0]).toMatchObject({ title: article.title, authors: ["Ada"], extraction: { objective: "Avaliar atenção" } });
     expect(overview.synthesis?.citations).toEqual([{ referenceNumber: 1, articleId: 9 }]);
+  });
+
+  it("oferece pares semelhantes para revisão e persiste a decisão sem excluir artigos", async () => {
+    const similarArticle = { ...article, id: 10, externalId: "paper-10", title: "Sono e cognição em estudantes universitários", publicationYear: 2024, authorsJson: '["Ada, Silva"]' };
+    vi.mocked(db.getSavedArticles).mockResolvedValue([{ ...article, title: "Efeitos do sono na cognição de estudantes universitários", authorsJson: '["Ada, Souza"]' }, similarArticle] as never);
+    vi.mocked(db.getArticleForProject).mockImplementation(async articleId => (articleId === 9 ? { ...article, title: "Efeitos do sono na cognição de estudantes universitários", authorsJson: '["Ada, Souza"]' } : similarArticle) as never);
+    const caller = appRouter.createCaller(context());
+    const candidates = await caller.cartographer.duplicateReviewCandidates({ projectId: 7 });
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0]).toMatchObject({ articleIdA: 9, articleIdB: 10, articleA: { title: "Efeitos do sono na cognição de estudantes universitários" }, articleB: { title: "Sono e cognição em estudantes universitários" } });
+    await expect(caller.cartographer.reviewDuplicateCandidate({ projectId: 7, articleIdA: 10, articleIdB: 9, decision: "distinct", reviewerNote: "Amostras e objetivos distintos." })).resolves.toMatchObject({ success: true });
+    expect(db.upsertArticleDuplicateReview).toHaveBeenCalledWith(expect.objectContaining({ projectId: 7, articleIdA: 9, articleIdB: 10, decision: "distinct" }));
+    expect(db.removeSavedArticle).not.toHaveBeenCalled();
   });
 
   it("normaliza citações vazias persistidas para manter a síntese acessível", async () => {

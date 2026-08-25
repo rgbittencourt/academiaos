@@ -291,3 +291,10 @@
 - [x] Publicar a exportação RIS validada do Retícula no Cloudflare e verificar a versão pública.
 - [x] Corrigir a política explícita de scripts de dependências do Retícula para viabilizar o Workers Builds sem reduzir a segurança do projeto.
 - [x] Isolar a validação temporária de credencial Cloudflare da suíte permanente do AcademiaOS, preservando os testes do produto sem dependência externa.
+- [x] Definir o contrato de exportação BibTeX/CSV e os parâmetros de retorno contextual do Retícula ao Cartographer.
+- [x] Consolidar os registros existentes do Lapis em uma proposta revisável de tema, assunto e disciplina para o Retícula.
+- [x] Implementar exportação BibTeX e CSV auditável de estudos selecionados no Retícula.
+- [x] Implementar atalho de retorno do Retícula ao Cartographer com a consulta e o contexto pré-preenchidos.
+- [x] Adicionar no Cartographer um botão para abrir o Retícula em nova aba com o contexto de levantamento disponível.
+- [x] Ampliar a deduplicação do Cartographer com revisão assistida de títulos semelhantes e decisão explícita do pesquisador.
+- [ ] Validar, publicar e sincronizar no GitHub e Cloudflare as evoluções de interoperabilidade dos dois produtos.

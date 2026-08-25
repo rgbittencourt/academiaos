@@ -15,6 +15,7 @@ import { fetchOfficialGrantOpportunities } from "./grantSources";
 import { searchAcademicArticles } from "./literature";
 import { extractPdfText, MAX_PDF_BYTES, validatePdfBuffer } from "./pdfText";
 import { createRisPreview } from "./risImport";
+import { findTitleSimilarityCandidates, scoreTitleSimilarity } from "./duplicateReview";
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { decryptZoteroKey, encryptZoteroKey, fetchZoteroLibrary } from "./zotero";
@@ -504,6 +505,46 @@ export const appRouter = router({
         await assertProjectAccess(input.projectId, ctx.user.id);
         await db.saveArticle(input.projectId, input.article);
         return { success: true };
+      }),
+    duplicateReviewCandidates: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        await assertProjectAccess(input.projectId, ctx.user.id);
+        const [articles, reviews] = await Promise.all([db.getSavedArticles(input.projectId), db.getArticleDuplicateReviews(input.projectId)]);
+        const byId = new Map(articles.map(article => [article.id, article]));
+        const reviewByPair = new Map(reviews.map(review => [`${review.articleIdA}:${review.articleIdB}`, review]));
+        return findTitleSimilarityCandidates(articles).map(candidate => {
+          const left = byId.get(candidate.articleIdA);
+          const right = byId.get(candidate.articleIdB);
+          return {
+            ...candidate,
+            articleA: left ? { id: left.id, title: left.title, authors: parseJsonArray(left.authorsJson), year: left.publicationYear, doi: left.doi } : null,
+            articleB: right ? { id: right.id, title: right.title, authors: parseJsonArray(right.authorsJson), year: right.publicationYear, doi: right.doi } : null,
+            review: reviewByPair.get(`${candidate.articleIdA}:${candidate.articleIdB}`) ?? null,
+          };
+        });
+      }),
+    reviewDuplicateCandidate: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive(), articleIdA: z.number().int().positive(), articleIdB: z.number().int().positive(), decision: z.enum(["same_study", "distinct"]), reviewerNote: z.string().trim().max(2000).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        await assertProjectAccess(input.projectId, ctx.user.id);
+        if (input.articleIdA === input.articleIdB) throw new TRPCError({ code: "BAD_REQUEST", message: "Selecione dois estudos distintos para revisão." });
+        const [left, right] = await Promise.all([
+          db.getArticleForProject(input.articleIdA, input.projectId),
+          db.getArticleForProject(input.articleIdB, input.projectId),
+        ]);
+        if (!left || !right) throw new TRPCError({ code: "BAD_REQUEST", message: "Os dois estudos precisam pertencer ao projeto ativo." });
+        const candidate = scoreTitleSimilarity(left, right);
+        if (!candidate) throw new TRPCError({ code: "BAD_REQUEST", message: "Este par não atende ao limiar de revisão por título semelhante." });
+        await db.upsertArticleDuplicateReview({
+          projectId: input.projectId,
+          articleIdA: candidate.articleIdA,
+          articleIdB: candidate.articleIdB,
+          similarityScore: Math.round(candidate.score),
+          decision: input.decision,
+          reviewerNote: input.reviewerNote,
+        });
+        return { success: true, score: candidate.score };
       }),
     previewRisImport: protectedProcedure
       .input(z.object({ projectId: z.number().int().positive(), filename: z.string().trim().min(1).max(255), content: z.string().min(1).max(2_000_000) }))

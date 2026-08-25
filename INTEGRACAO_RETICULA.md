@@ -2,7 +2,7 @@
 
 ## Contexto
 
-O **Retícula — Atlas de Literatura Científica** é uma implementação própria do **Prof. Rogério G. Bittencourt** e encontra-se, por ora, hospedado no ChatGPT Sites. O AcademiaOS deverá tratá-lo como uma fonte complementar de descoberta para o Cartographer, preservando a autonomia dos dois produtos e a rastreabilidade de todos os registros recebidos.
+O **Retícula — Atlas de Literatura Científica** é uma implementação própria do **Prof. Rogério G. Bittencourt**, publicada em Cloudflare Workers. O AcademiaOS o trata como uma fonte complementar de descoberta para o Cartographer, preservando a autonomia dos dois produtos e a rastreabilidade de todos os registros recebidos.
 
 Nenhum endpoint, URL pública, formato de exportação, contrato de autenticação ou política de reuso foi configurado neste repositório até o momento. Por esse motivo, este documento descreve o contrato que deve ser confirmado antes de qualquer conexão técnica.
 
@@ -51,11 +51,19 @@ No Cartographer, o fluxo deve ter quatro etapas: envio do arquivo, pré-visualiz
 
 Essa abordagem não impede uma API posterior. Ao contrário, o formato normalizado usado no importador define desde já a estrutura que a futura API deverá devolver. Quando houver demanda por atualização contínua de consultas ou trabalho sem etapa manual, a rota `GET /api/atlas` poderá evoluir para `/api/v1/atlas` autenticada e reutilizar o mesmo modelo de dados.
 
-## Informações pendentes para implementação
+## Interoperabilidade entregue
+
+O Retícula exporta o conjunto atualmente filtrado em três formatos: **RIS** para importação bibliográfica, **BibTeX** para fluxos LaTeX/Zotero e **CSV UTF-8 com BOM** como relatório de auditoria legível em planilhas. Os três formatos preservam, quando disponíveis, identificador, título, autores, ano, veículo, DOI, URL, resumo, fonte, consulta, três coordenadas e horário de exportação. A exportação não inventa campos de veículo nem altera os registros que fundamentam o atlas.
+
+Os dois produtos também oferecem continuidade de descoberta por URL, sem uso de API privada, raspagem ou sincronização em segundo plano. O AcademiaOS abre o Retícula em nova aba com `theme`, `subject`, `discipline` e `from=academiaos`; o Retícula apenas pré-preenche as coordenadas e exige que o pesquisador inicie a busca. No retorno, o Retícula abre `/search` do AcademiaOS em nova aba com a consulta e a proveniência `source=reticula`; o Cartographer mostra o contexto recebido e mantém o comando de busca sob controle explícito do pesquisador.
+
+No Cartographer, a deduplicação continua a priorizar identificadores estáveis. Uma camada adicional calcula candidatos de títulos semelhantes com regra determinística e explicável baseada em tokens do título, autoria, ano e DOI. O pesquisador pode registrar **“mesmo estudo”** ou **“manter distintos”**, com nota opcional e data. Essa decisão é auditável, não exclui, não funde e não substitui nenhum estudo salvo.
+
+## Próximos limites e evolução
 
 Se o objetivo for a integração inicial de menor risco, não é necessária uma API nova: basta definir os formatos e implementar exportador/importador. A rota pública `GET /api/atlas` pode permanecer como recurso do Retícula até que uma integração automática seja realmente necessária. Nesse momento, a recomendação será evoluir para uma API versionada com `schemaVersion`, identificador de consulta, política de erros estável e controles de limite; o AcademiaOS a consumirá somente por seu backend e continuará salvando proveniência.
 
-Em paralelo, é recomendável oferecer exportação RIS/BibTeX/CSV no Retícula e importação no AcademiaOS como rota manual de interoperabilidade. Esse recurso atende pesquisadores que trabalham fora do AcademiaOS e funciona como contingência caso a API fique temporariamente indisponível. A consulta federada, por sua vez, deve ficar como melhoria de navegação: um botão do AcademiaOS abre o Retícula já preenchido ou incorpora um mapa autorizado, mas não substitui a ingestão estruturada necessária para triagem e síntese auditáveis.
+Em paralelo, a exportação RIS/BibTeX/CSV no Retícula e a importação RIS auditável no AcademiaOS constituem a rota manual de interoperabilidade. Esse recurso atende pesquisadores que trabalham fora do AcademiaOS e funciona como contingência caso uma futura API fique temporariamente indisponível. A consulta por URL é uma melhoria de navegação; ela não substitui a ingestão estruturada necessária para triagem e síntese auditáveis.
 
 Antes da ativação, devem ser definidos chave de serviço, limites de requisição, CORS restrito ao backend autorizado, observabilidade sem metadados pessoais, política de cache, termos de uso e tratamento de erros. Como a camada de descoberta atual faz chamadas externas e pode utilizar planejamento semântico, não é recomendável expor indefinidamente a rota sem esses controles.
 
