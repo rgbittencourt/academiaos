@@ -14,6 +14,7 @@ import * as db from "./db";
 import { fetchOfficialGrantOpportunities } from "./grantSources";
 import { searchAcademicArticles } from "./literature";
 import { extractPdfText, MAX_PDF_BYTES, validatePdfBuffer } from "./pdfText";
+import { createRisPreview } from "./risImport";
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { decryptZoteroKey, encryptZoteroKey, fetchZoteroLibrary } from "./zotero";
@@ -21,7 +22,7 @@ import { invokeLLM } from "./_core/llm";
 
 const articleInput = z.object({
   externalId: z.string().min(1).max(255),
-  source: z.enum(["semantic_scholar", "openalex", "europe_pmc", "pubmed", "crossref", "scielo", "openaire", "arxiv", "core"]),
+  source: z.enum(["semantic_scholar", "openalex", "europe_pmc", "pubmed", "crossref", "scielo", "openaire", "arxiv", "core", "reticula"]),
   title: z.string().min(1),
   authors: z.array(z.string()),
   year: z.number().int().nullable(),
@@ -503,6 +504,40 @@ export const appRouter = router({
         await assertProjectAccess(input.projectId, ctx.user.id);
         await db.saveArticle(input.projectId, input.article);
         return { success: true };
+      }),
+    previewRisImport: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive(), filename: z.string().trim().min(1).max(255), content: z.string().min(1).max(2_000_000) }))
+      .mutation(async ({ ctx, input }) => {
+        await assertProjectAccess(input.projectId, ctx.user.id);
+        if (!/\.ris$/i.test(input.filename)) throw new TRPCError({ code: "BAD_REQUEST", message: "Envie um arquivo com extensão .ris." });
+        try {
+          return createRisPreview(input.content, await db.getSavedArticles(input.projectId));
+        } catch (error) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Não foi possível ler o arquivo RIS." });
+        }
+      }),
+    confirmRisImport: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive(), filename: z.string().trim().min(1).max(255), content: z.string().min(1).max(2_000_000), selectedExternalIds: z.array(z.string().min(1).max(255)).min(1).max(500), acknowledged: z.literal(true) }))
+      .mutation(async ({ ctx, input }) => {
+        await assertProjectAccess(input.projectId, ctx.user.id);
+        if (!/\.ris$/i.test(input.filename)) throw new TRPCError({ code: "BAD_REQUEST", message: "Envie um arquivo com extensão .ris." });
+        const preview = createRisPreview(input.content, await db.getSavedArticles(input.projectId));
+        const selection = new Set(input.selectedExternalIds);
+        const articles = preview.records.filter(record => record.status === "ready" && selection.has(record.externalId));
+        if (!articles.length) throw new TRPCError({ code: "BAD_REQUEST", message: "Selecione ao menos uma referência disponível para importação." });
+        const sanitizedFilename = input.filename.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(-255) || "reticula.ris";
+        const importBatchId = await db.saveRisImportBatch({
+          projectId: input.projectId,
+          originalFilename: sanitizedFilename,
+          contentHash: preview.contentHash,
+          totalRecords: preview.total,
+          candidateRecords: preview.candidateCount,
+          duplicateRecords: preview.duplicateCount,
+          selectedRecords: articles.length,
+          provenanceJson: JSON.stringify({ source: "Retícula — Atlas de Literatura Científica", format: "RIS", notes: preview.provenance, importedAt: new Date().toISOString() }),
+          articles,
+        });
+        return { importBatchId, importedCount: articles.length, skippedDuplicates: preview.duplicateCount };
       }),
     toggleArticleRead: protectedProcedure
       .input(z.object({ projectId: z.number().int().positive(), articleId: z.number().int().positive(), isRead: z.boolean() }))

@@ -6,7 +6,7 @@ vi.mock("./db", () => ({
   getSavedArticles: vi.fn(), getProjectMetrics: vi.fn(), getProjectSynthesis: vi.fn(),
   getExtraction: vi.fn(), saveArticle: vi.fn(), getArticleForProject: vi.fn(),
   setArticleReadState: vi.fn(), removeSavedArticle: vi.fn(), upsertExtraction: vi.fn(), setProjectSynthesis: vi.fn(),
-  getArticleDocument: vi.fn(), upsertArticleDocument: vi.fn(),
+  getArticleDocument: vi.fn(), upsertArticleDocument: vi.fn(), saveRisImportBatch: vi.fn(),
   getProjectScreenings: vi.fn(), upsertArticleScreening: vi.fn(), getNarrativeThemes: vi.fn(), createNarrativeTheme: vi.fn(), updateNarrativeTheme: vi.fn(), removeNarrativeTheme: vi.fn(),
   getLapisProjectsByUserId: vi.fn(), getLapisProjectForUser: vi.fn(), createLapisProject: vi.fn(),
   updateLapisProject: vi.fn(), removeLapisProject: vi.fn(), getLapisAnalyses: vi.fn(), setLapisAnalysis: vi.fn(),
@@ -261,6 +261,22 @@ describe("cartographer routes", () => {
     const manuscript = { title: "Sono e cognição", abstract: "Resumo de trabalho.", keywords: "sono, cognição", sections: [{ id: "metodo", heading: "Método", content: "Coorte prospectiva.", source: "method" as const }], status: "draft" as const };
     await expect(caller.lapis.updateManuscript({ lapisProjectId: 13, manuscript })).resolves.toEqual({ success: true });
     expect(db.upsertLapisManuscript).toHaveBeenCalledWith(13, expect.objectContaining({ title: manuscript.title, sectionsJson: JSON.stringify(manuscript.sections), status: "draft" }));
+  });
+
+  it("pré-visualiza RIS sem gravar e exige confirmação literal antes de criar o lote auditável", async () => {
+    const ris = "TY  - JOUR\nTI  - Estudo importado do Retícula\nAU  - Silva, Ana\nPY  - 2026\nDO  - 10.1234/reticula\nN1  - Retícula — Atlas de Literatura Científica | consulta: ondas internas\nER  - ";
+    vi.mocked(db.getSavedArticles).mockResolvedValue([] as never);
+    vi.mocked(db.saveRisImportBatch).mockResolvedValue(88 as never);
+    const caller = appRouter.createCaller(context());
+
+    await expect(caller.cartographer.previewRisImport({ projectId: 7, filename: "reticula.ris", content: ris })).resolves.toMatchObject({ total: 1, candidateCount: 1, duplicateCount: 0 });
+    expect(db.saveRisImportBatch).not.toHaveBeenCalled();
+
+    await expect(caller.cartographer.confirmRisImport({ projectId: 7, filename: "reticula.ris", content: ris, selectedExternalIds: ["doi:10.1234/reticula"], acknowledged: false as never })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(db.saveRisImportBatch).not.toHaveBeenCalled();
+
+    await expect(caller.cartographer.confirmRisImport({ projectId: 7, filename: "reticula.ris", content: ris, selectedExternalIds: ["doi:10.1234/reticula"], acknowledged: true })).resolves.toEqual({ importBatchId: 88, importedCount: 1, skippedDuplicates: 0 });
+    expect(db.saveRisImportBatch).toHaveBeenCalledWith(expect.objectContaining({ projectId: 7, originalFilename: "reticula.ris", selectedRecords: 1, provenanceJson: expect.stringContaining("Retícula") }));
   });
 
   it("remove um caderno Lapis autorizado junto com as análises associadas", async () => {

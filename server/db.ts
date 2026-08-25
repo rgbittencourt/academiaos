@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { analystNotebooks, analystPlanVersions, analystPlans, analystVisualizations, articleDocuments, articleExtractions, ArticleExtraction, articleScreenings, grantOpportunities, InsertUser, lapisAcademicRecordSearches, lapisAnalyses, lapisGrantSelections, lapisManuscripts, lapisMethods, lapisMilestones, lapisPreregistrationDevilReviews, lapisPreregistrations, lapisProjects, matchmakerSubmissions, narrativeThemes, projectSyntheses, qualiaCodeSuggestions, qualiaCodes, qualiaCodingDecisions, qualiaCorpora, qualiaExcerpts, qualiaMemos, qualiaSources, reviewProjects, savedArticles, scriptoriumDocuments, scriptoriumSubstanceReviews, scriptoriumVersions, scriptoriumZoteroConnections, scriptoriumZoteroItems, users, vaultDataDictionaries, vaultDatasetVersions, vaultDatasets, vaultFiles, vaultGovernanceRecords, vaultRepositoryAuthorizations, vaultRepositoryPlans, vigilAssessments } from "../drizzle/schema";
+import { analystNotebooks, analystPlanVersions, analystPlans, analystVisualizations, articleDocuments, articleExtractions, ArticleExtraction, articleScreenings, grantOpportunities, InsertUser, lapisAcademicRecordSearches, lapisAnalyses, lapisGrantSelections, lapisManuscripts, lapisMethods, lapisMilestones, lapisPreregistrationDevilReviews, lapisPreregistrations, lapisProjects, literatureImportBatches, matchmakerSubmissions, narrativeThemes, projectSyntheses, qualiaCodeSuggestions, qualiaCodes, qualiaCodingDecisions, qualiaCorpora, qualiaExcerpts, qualiaMemos, qualiaSources, reviewProjects, savedArticles, scriptoriumDocuments, scriptoriumSubstanceReviews, scriptoriumVersions, scriptoriumZoteroConnections, scriptoriumZoteroItems, users, vaultDataDictionaries, vaultDatasetVersions, vaultDatasets, vaultFiles, vaultGovernanceRecords, vaultRepositoryAuthorizations, vaultRepositoryPlans, vigilAssessments } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -153,7 +153,7 @@ export async function getProjectMetrics(projectId: number) {
 
 export async function saveArticle(projectId: number, article: {
   externalId: string;
-  source: "semantic_scholar" | "openalex" | "europe_pmc" | "pubmed" | "crossref" | "scielo" | "openaire" | "arxiv" | "core";
+  source: "semantic_scholar" | "openalex" | "europe_pmc" | "pubmed" | "crossref" | "scielo" | "openaire" | "arxiv" | "core" | "reticula";
   title: string;
   authors: string[];
   year: number | null;
@@ -178,6 +178,61 @@ export async function saveArticle(projectId: number, article: {
     relevanceScore: article.relevanceScore,
     sourceUrl: article.url,
   }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+}
+
+export async function saveRisImportBatch(input: {
+  projectId: number;
+  originalFilename: string;
+  contentHash: string;
+  totalRecords: number;
+  candidateRecords: number;
+  duplicateRecords: number;
+  selectedRecords: number;
+  provenanceJson: string;
+  articles: Array<{
+    externalId: string;
+    title: string;
+    authors: string[];
+    year: number | null;
+    abstract: string | null;
+    doi: string | null;
+    url: string | null;
+  }>;
+}) {
+  const database = await getDb();
+  if (!database) throw new Error("Banco de dados indisponível");
+  return database.transaction(async tx => {
+    const result = await tx.insert(literatureImportBatches).values({
+      projectId: input.projectId,
+      source: "reticula",
+      format: "ris",
+      originalFilename: input.originalFilename,
+      contentHash: input.contentHash,
+      totalRecords: input.totalRecords,
+      candidateRecords: input.candidateRecords,
+      duplicateRecords: input.duplicateRecords,
+      selectedRecords: input.selectedRecords,
+      provenanceJson: input.provenanceJson,
+    });
+    const importBatchId = Number(result[0].insertId);
+    for (const article of input.articles) {
+      await tx.insert(savedArticles).values({
+        projectId: input.projectId,
+        importBatchId,
+        externalId: article.externalId,
+        source: "reticula",
+        title: article.title,
+        authorsJson: JSON.stringify(article.authors),
+        publicationYear: article.year,
+        abstract: article.abstract,
+        doi: article.doi,
+        citationCount: 0,
+        relevanceScore: 0,
+        sourceUrl: article.url,
+      }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+    }
+    return importBatchId;
+  });
 }
 
 export async function setArticleReadState(articleId: number, isRead: boolean) {

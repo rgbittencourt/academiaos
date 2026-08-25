@@ -24,7 +24,7 @@ Essa verificação de interface e metadados do repositório não confirma, por s
 
 | Modalidade | Uso | Pré-condições | Situação |
 |---|---|---|---|
-| Importação de exportação | O pesquisador importa um arquivo gerado pelo Retícula em RIS, BibTeX ou CSV. | Amostra real de arquivo e mapeamento dos campos. | Primeiro candidato para MVP. |
+| Importação de exportação | O pesquisador exporta um conjunto selecionado no Retícula e importa o arquivo no Cartographer. | Amostra real de arquivo e mapeamento dos campos. | **Primeira integração recomendada.** |
 | API autenticada | O Cartographer pesquisa ou recebe registros estruturados do Retícula. | URL pública, documentação, autenticação, limites e autorização explícita. | Aguardando definição do Retícula. |
 | Consulta federada | O Cartographer cria a consulta e abre ou incorpora o resultado autorizado do Retícula. | URL pública, política de embedding/CORS e comportamento de retorno definido. | Aguardando definição do Retícula. |
 
@@ -34,9 +34,26 @@ Cada registro originado no Retícula deve preservar, quando disponível, o ident
 
 A deduplicação deve priorizar DOI e identificadores bibliográficos estáveis. Quando não houver identificador estável, o sistema deve marcar a possível duplicidade a partir de título, autores e ano normalizados, deixando a confirmação para o pesquisador.
 
+## Primeira integração recomendada: exportar e importar
+
+Para a primeira versão, o caminho mais simples é implementar **exportação no Retícula** e **importação no AcademiaOS**. O pesquisador continua usando o mapa, os filtros e a descoberta visual do Retícula; ao selecionar os estudos de interesse, baixa um arquivo e decide conscientemente em qual projeto do Cartographer ele será incorporado. Não há autenticação entre aplicações, CORS, chave de serviço, sincronização periódica nem exposição adicional de endpoints.
+
+O Retícula deve oferecer **RIS** como formato principal, pois preserva a estrutura bibliográfica clássica e é amplamente interoperável. **BibTeX** pode ser disponibilizado em seguida para fluxos LaTeX/Zotero. Um **CSV de auditoria** é útil como complemento de leitura, mas não deve ser a única opção, pois campos multivalorados e resumos longos são mais frágeis nesse formato.
+
+| Campo mínimo de exportação | Uso no AcademiaOS |
+|---|---|
+| `title`, `authors`, `year`, `venue` | Criação e apresentação do registro bibliográfico. |
+| `doi`, `url`, `source` e `sourceId` | Deduplicação e rastreio da origem. |
+| `abstract`, quando disponível | Apoio à triagem e extração auditável. |
+| `query`, `exportedAt`, `reticulaUrl` | Proveniência do lote e reprodutibilidade da descoberta. |
+
+No Cartographer, o fluxo deve ter quatro etapas: envio do arquivo, pré-visualização com validação dos campos, indicação de possíveis duplicatas por DOI/identificadores e confirmação explícita do pesquisador para importar. O sistema deve manter o arquivo ou os campos brutos do lote junto da data, da consulta e da origem `Retícula`, sem substituir silenciosamente o que já existe na biblioteca.
+
+Essa abordagem não impede uma API posterior. Ao contrário, o formato normalizado usado no importador define desde já a estrutura que a futura API deverá devolver. Quando houver demanda por atualização contínua de consultas ou trabalho sem etapa manual, a rota `GET /api/atlas` poderá evoluir para `/api/v1/atlas` autenticada e reutilizar o mesmo modelo de dados.
+
 ## Informações pendentes para implementação
 
-Para iniciar a integração, o responsável pelo Retícula deve escolher uma modalidade de intercâmbio. Como a rota pública `GET /api/atlas` já existe, a recomendação é adotar uma **API de descoberta versionada** como caminho principal: `GET /api/v1/atlas` receberia `theme`, `subject` e `discipline`; retornaria o contrato já normalizado, acrescido de `schemaVersion`, identificador de consulta, política de erros estável e controles de limite. O AcademiaOS consumiria a API somente a partir do seu backend, protegeria uma chave de serviço no ambiente e salvaria a proveniência de cada resultado no Cartographer.
+Se o objetivo for a integração inicial de menor risco, não é necessária uma API nova: basta definir os formatos e implementar exportador/importador. A rota pública `GET /api/atlas` pode permanecer como recurso do Retícula até que uma integração automática seja realmente necessária. Nesse momento, a recomendação será evoluir para uma API versionada com `schemaVersion`, identificador de consulta, política de erros estável e controles de limite; o AcademiaOS a consumirá somente por seu backend e continuará salvando proveniência.
 
 Em paralelo, é recomendável oferecer exportação RIS/BibTeX/CSV no Retícula e importação no AcademiaOS como rota manual de interoperabilidade. Esse recurso atende pesquisadores que trabalham fora do AcademiaOS e funciona como contingência caso a API fique temporariamente indisponível. A consulta federada, por sua vez, deve ficar como melhoria de navegação: um botão do AcademiaOS abre o Retícula já preenchido ou incorpora um mapa autorizado, mas não substitui a ingestão estruturada necessária para triagem e síntese auditáveis.
 

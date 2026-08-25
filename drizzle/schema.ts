@@ -34,11 +34,30 @@ export const reviewProjects = mysqlTable("review_projects", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, table => [index("review_projects_user_idx").on(table.userId)]);
 
+export const literatureImportBatches = mysqlTable("literature_import_batches", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  source: mysqlEnum("source", ["reticula"]).notNull(),
+  format: mysqlEnum("format", ["ris"]).notNull(),
+  originalFilename: varchar("originalFilename", { length: 255 }).notNull(),
+  contentHash: varchar("contentHash", { length: 64 }).notNull(),
+  totalRecords: int("totalRecords").notNull(),
+  candidateRecords: int("candidateRecords").notNull(),
+  duplicateRecords: int("duplicateRecords").notNull(),
+  selectedRecords: int("selectedRecords").notNull(),
+  provenanceJson: text("provenanceJson").notNull(),
+  importedAt: timestamp("importedAt").defaultNow().notNull(),
+}, table => [
+  index("literature_import_batches_project_idx").on(table.projectId),
+  index("literature_import_batches_project_imported_idx").on(table.projectId, table.importedAt),
+]);
+
 export const savedArticles = mysqlTable("saved_articles", {
   id: int("id").autoincrement().primaryKey(),
   projectId: int("projectId").notNull(),
+  importBatchId: int("importBatchId"),
   externalId: varchar("externalId", { length: 255 }).notNull(),
-  source: mysqlEnum("source", ["semantic_scholar", "openalex", "europe_pmc", "pubmed", "crossref", "scielo", "openaire", "arxiv", "core"]).notNull(),
+  source: mysqlEnum("source", ["semantic_scholar", "openalex", "europe_pmc", "pubmed", "crossref", "scielo", "openaire", "arxiv", "core", "reticula"]).notNull(),
   title: text("title").notNull(),
   authorsJson: text("authorsJson").notNull(),
   publicationYear: int("publicationYear"),
@@ -52,6 +71,7 @@ export const savedArticles = mysqlTable("saved_articles", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, table => [
   index("saved_articles_project_idx").on(table.projectId),
+  index("saved_articles_import_batch_idx").on(table.importBatchId),
   uniqueIndex("saved_articles_project_external_unique").on(table.projectId, table.externalId),
 ]);
 

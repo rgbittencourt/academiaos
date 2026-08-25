@@ -278,7 +278,16 @@
 - [x] Priorizar melhorias funcionais e de experiência para o próximo ciclo do AcademiaOS.
 - [x] Comparar a hospedagem atual com uma arquitetura em Cloudflare, incluindo autenticação, banco de dados e armazenamento.
 - [x] Auditar o código e a documentação do AcademiaOS para publicação pública segura no GitHub.
-- [ ] Sincronizar código-fonte, README e materiais públicos no repositório github.com/rgbittencourt/academiaos, excluindo segredos, dados e artefatos internos.
+- [x] Sincronizar código-fonte, README e materiais públicos no repositório github.com/rgbittencourt/academiaos, excluindo segredos, dados e artefatos internos.
 - [x] Atualizar a documentação da estratégia do Retícula, reconhecendo-o como implementação própria hospedada no ChatGPT Sites.
 - [x] Inspecionar o Retícula quando o endereço público e o mecanismo de intercâmbio forem disponibilizados pelo responsável.
 - [x] Avaliar a interface pública e o repositório do Retícula para recomendar API, importação bibliográfica ou consulta federada.
+- [x] Definir o contrato interoperável de exportação do Retícula e importação auditável no AcademiaOS.
+- [x] Planejar a implementação da exportação bibliográfica no Retícula e da importação no Cartographer.
+- [x] Implementar exportação RIS de estudos selecionados no Retícula, preservando metadados e proveniência da consulta.
+- [x] Implementar importação RIS no Cartographer com pré-visualização, deduplicação e confirmação explícita por projeto.
+- [x] Cobrir exportação e importação RIS com testes, validação visual e documentação de uso.
+- [x] Sincronizar a exportação RIS validada no repositório público github.com/rgbittencourt/reticula-atlas-ideias.
+- [x] Publicar a exportação RIS validada do Retícula no Cloudflare e verificar a versão pública.
+- [x] Corrigir a política explícita de scripts de dependências do Retícula para viabilizar o Workers Builds sem reduzir a segurança do projeto.
+- [x] Isolar a validação temporária de credencial Cloudflare da suíte permanente do AcademiaOS, preservando os testes do produto sem dependência externa.
