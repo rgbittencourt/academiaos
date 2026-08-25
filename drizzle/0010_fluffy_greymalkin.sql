@@ -1,0 +1,1 @@
+ALTER TABLE `saved_articles` MODIFY COLUMN `source` enum('semantic_scholar','openalex','europe_pmc','pubmed','crossref','scielo','openaire','arxiv','core') NOT NULL;

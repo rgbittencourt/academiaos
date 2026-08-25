@@ -1,0 +1,111 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787102320342,
+      "tag": "0000_yummy_raider",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787102566828,
+      "tag": "0001_curious_night_nurse",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787165104465,
+      "tag": "0002_crazy_magdalene",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787191198987,
+      "tag": "0003_mute_madelyne_pryor",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1787193053565,
+      "tag": "0004_red_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1787196066915,
+      "tag": "0005_bouncy_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1787197211831,
+      "tag": "0006_cheerful_bromley",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1787198735661,
+      "tag": "0007_bitter_mockingbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1787202050623,
+      "tag": "0008_early_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1787205092664,
+      "tag": "0009_unusual_siren",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787205496953,
+      "tag": "0010_fluffy_greymalkin",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1787205849943,
+      "tag": "0011_tired_charles_xavier",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1787207143092,
+      "tag": "0012_complex_silver_centurion",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1787234005705,
+      "tag": "0013_fearless_hammerhead",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1787671497301,
+      "tag": "0014_public_hitman",
+      "breakpoints": true
+    }
+  ]
+}

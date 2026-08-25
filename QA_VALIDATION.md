@@ -1,0 +1,151 @@
+# Validação do MVP Cartographer
+
+## Escopo e evidências
+
+O MVP foi validado por meio de compilação estática, testes de contrato tRPC e inspeção visual do dashboard autenticado na prévia gerenciada. A suíte foi executada com `pnpm check && pnpm test` em 19 de agosto de 2026 e concluiu com **13 testes aprovados em 3 arquivos**, sem falhas de tipagem.
+
+Os testes cobrem autenticação obrigatória, busca acadêmica, criação e listagem de projetos, salvamento, leitura e remoção de artigos, extração estruturada, geração de síntese e a composição do `projectOverview` com métricas, artigo extraído e síntese persistida. As validações de IA também rejeitam evidência não literal e sentenças de síntese sem referência rastreável.
+
+Foram capturadas prévias autenticadas do dashboard em desktop (1280×720) e celular (375×812). Elas mostram a área protegida com o projeto ativo, as métricas de artigos, leituras, extrações e síntese, a navegação lateral e a adaptação do conteúdo à tela móvel.
+
+## Limitação registrada
+
+O navegador de automação independente não recebeu uma sessão OAuth utilizável, portanto não foram criados ou alterados dados reais da conta durante uma execução manual de ponta a ponta no navegador. A cobertura funcional equivalente foi feita pelos contratos protegidos tRPC com contexto autenticado simulado, e a representação visual da área protegida foi confirmada nas capturas da prévia autenticada.
+
+## Atualização de validação autenticada
+
+Em uma validação posterior, a sessão autenticada passou a estar disponível também na versão de desenvolvimento. Foram confirmados o dashboard do projeto, a navegação para descoberta e biblioteca, a busca de artigos, o salvamento na biblioteca e a abertura do diálogo de extração. A extração rastreável foi iniciada para o artigo de revisão de CNNs em 1D. Após estabilizar o reinício automático do servidor de desenvolvimento, a interface foi recarregada e uma nova extração foi solicitada; a tela apresentou corretamente o estado de processamento “Extraindo evidências…”. A conclusão e o retorno do modelo precisam ser verificados nos registros do servidor antes da publicação final.
+
+Na segunda tentativa, o provedor entregou conteúdo ausente e a implementação anterior tentou acessar `.map`, causando a mensagem “Cannot read properties of undefined”. O parser foi ajustado para normalizar conteúdo ausente como texto vazio, acionar o retry estruturado e retornar uma mensagem explicativa caso a recuperação falhe. A alteração passou por `pnpm check` e pela suíte completa, agora com 18 testes aprovados, inclusive um cenário de conteúdo ausente.
+
+A reexecução autenticada revelou também uma carga JSON que não continha o campo `evidence`. A validação de extração passou a recusar esse formato antes de qualquer iteração, classificar a falha como recuperável e solicitar uma resposta compacta de recuperação. A compilação e a suíte completa foram executadas após esse ajuste, com 19 testes aprovados.
+
+Após a atualização, a página de desenvolvimento foi recarregada e a extração foi solicitada novamente em uma sessão autenticada. A interface manteve o estado de processamento durante a chamada; a leitura subsequente dos registros será usada para distinguir uma conclusão lenta de uma falha recuperável.
+
+A validação autenticada confirmou que, para uma evidência parafraseada, a interface não expõe mais um erro técnico de JavaScript: apresenta um alerta e toast indicando especificamente que a evidência de `mainFindings` não é um trecho literal verificável do resumo e mantém o comando de nova tentativa disponível. A camada de IA passou a reexecutar automaticamente esse caso com uma instrução explícita de cópia literal; a compilação e os testes foram aprovados após a mudança, totalizando 20 testes.
+
+Uma nova execução autenticada foi iniciada após a recuperação de evidência literal. A análise de registros confirma que o erro anterior foi classificado como de rastreabilidade da evidência, e não como erro técnico de interface. A conclusão da segunda chamada será confirmada no estado do diálogo antes do checkpoint.
+
+Para reduzir recusas indevidas sem perder rastreabilidade, a validação agora troca um `sourceText` parafraseado por uma sentença literal do resumo com correspondência lexical. O comportamento é coberto na suíte automatizada, aprovada com 20 testes após a alteração. O alerta anterior também é limpo assim que o usuário inicia uma nova tentativa.
+
+## Síntese auditável — validação em andamento
+
+Em 19 de agosto de 2026, uma síntese persistida com `citationsJson` vazio foi identificada. O adaptador tRPC e a interface passaram a normalizar valores nulos, vazios ou inválidos para uma lista vazia de referências, com teste de regressão. A geração de uma nova síntese foi acionada na sessão autenticada para validar a cadeia completa de parágrafo, referências clicáveis e trechos de origem; o estado visual observado é “Construindo síntese…”. A mensagem “Unexpected end of JSON input” exibida no início desta execução corresponde ao erro histórico armazenado antes da correção e será reavaliada ao término da nova geração.
+
+A primeira geração posterior concluiu sem expor erro de parse: ela foi recusada de modo seguro porque a referência `[30001]` não continha trecho literal verificável no resumo correspondente. A camada de síntese foi então reforçada para validar o formato da resposta e repetir uma única vez a solicitação com instrução explícita de copiar `sourceText` continuamente do resumo da fonte cujo `articleId` foi informado. A revalidação autenticada dessa recuperação permanece pendente.
+
+A revalidação foi iniciada na mesma sessão autenticada. A tela manteve o estado “Construindo síntese…” durante a chamada ao modelo; o resultado persistido será verificado antes da conclusão do QA.
+
+Na recarga subsequente, a interface exibiu a mensagem persistida da tentativa anterior: “Síntese auditável: a resposta do modelo não era um JSON válido. Tente novamente.” O parser foi reforçado para aceitar um objeto JSON válido cercado por texto explicativo ou bloco Markdown; a nova execução com esse ajuste ainda será validada.
+
+Como o provedor permaneceu sem devolver JSON utilizável mesmo após a recuperação estruturada, foi adicionada uma contingência determinística. Ela cria uma síntese rotulada pelo modelo como `fallback auditável`, preservando apenas primeiras sentenças literais dos resumos e as respectivas referências clicáveis. O mecanismo possui cobertura automatizada e será agora validado na sessão autenticada.
+
+A execução autenticada concluiu com status `ready`, sem mensagem de erro e com três referências persistidas. O conteúdo apresenta os marcadores `[1]`, `[2]` e `[3]`; cada citação armazena o `articleId`, o título da fonte e um trecho literal contínuo do respectivo resumo. O próximo passo de QA é confirmar a abertura desse trecho pela referência clicável na interface.
+
+A validação visual autenticada foi concluída. A síntese pronta exibiu as três referências douradas e, ao selecionar `[1]`, a interface abriu o diálogo “Evidência da referência [1]”, com o título do artigo e o trecho literal do resumo. O fluxo de síntese auditável — geração, persistência, marcadores clicáveis e reabertura da evidência — está validado.
+
+O controle de qualidade final foi aprovado em 19 de agosto de 2026: `pnpm check` concluiu sem erros e `pnpm test` aprovou 26 testes em quatro arquivos, incluindo os cenários de resposta vazia, JSON truncado, citação não literal e fallback auditável da síntese.
+
+A revisão visual autenticada foi complementada em layouts de 1280 × 720 e 375 × 812. Dashboard, Descobrir, Biblioteca e Síntese permaneceram acessíveis no menu e preservaram conteúdo legível no mobile; a rota direta `/discover` foi corrigida para renderizar a busca semântica. A biblioteca móvel também foi ajustada: os controles de extração e remoção foram deslocados abaixo do resumo, evitando que reduzissem a largura útil dos títulos e metadados.
+
+Rodada visual final registrada em 19 de agosto de 2026, em sessão autenticada com o projeto “Identificação de ondas internas utilizando redes neurais”. As capturas completas de `/, /discover, /library` e `/synthesis` foram concluídas nos viewports **1280 × 720** e **375 × 812**. Em desktop, o dashboard exibiu as métricas 3/2/1 e síntese pronta; a busca semântica abriu corretamente pela rota direta; a biblioteca apresentou os três artigos; e a síntese mostrou suas três citações ativas. Em mobile, o cabeçalho condensou no menu, o campo de busca permaneceu acionável, os controles da biblioteca ocuparam uma linha própria e a síntese manteve os marcadores clicáveis e a lista de referências sem corte horizontal.
+
+## Extração auditável — contingência validada
+
+Em nova validação autenticada, o artigo “Classificação de imagens de sensoriamento remoto baseada em textura por redes neurais” foi submetido à extração. A primeira tentativa do provedor omitiu a lista obrigatória de evidências e a segunda continha uma evidência não literal para metodologia; ambas foram tratadas como recuperáveis. Após as duas tentativas, a aplicação gerou e persistiu uma extração de contingência com sentenças literais do próprio resumo. A biblioteca passou a mostrar o status **EXTRAÍDO**, o diálogo abriu os campos com seus trechos de origem e a consulta de persistência confirmou `articleId = 2` com o modelo `gpt-5-mini (fallback auditável)`.
+
+O adaptador normaliza ausência de `choices`, conteúdo vazio, JSON truncado, JSON cercado por texto e o campo `error` do provedor em mensagens recuperáveis. Por privacidade e para não reintroduzir telemetria temporária, os payloads completos do modelo não são registrados; os cenários de formato são cobertos por mocks de contrato. A validação final de 19 de agosto de 2026 aprovou `pnpm check` e **29 testes** em quatro arquivos.
+
+O diagnóstico não sensível foi formalizado no adaptador `inspectStructuredResponse`. Ele considera somente `choicesCount`, existência da primeira escolha, `finish_reason`, estado e tamanho do conteúdo, e presença de `error`; não armazena nem expõe o texto retornado. Os cenários cobertos confirmam: resposta sem `choices` (`choicesCount = 0`, estado `missing-choice`, `finishReason = null`); escolha encerrada por `length` sem `message.content` (estado `missing-content`, tamanho `0`); e `error` declarado pelo provedor, convertido em mensagem recuperável sem reproduzir o diagnóstico remoto. A execução específica desta cobertura aprovou 17 testes em `literature.test.ts` e `pnpm check`.
+
+Na observação real disponível nos registros de desenvolvimento durante a falha anterior, o único metadado registrado foi `providerError: undefined` (duas ocorrências, às 17:01:23 e 17:03:53). Portanto, não havia mensagem remota não sensível para inspecionar nem payload confiável que permitisse afirmar a estrutura integral da resposta; essa ausência é tratada explicitamente pelo contrato como resposta sem escolha/conteúdo utilizável, com `finishReason = null` e tamanho de conteúdo `0` quando tais campos não existem. O produto deliberadamente não acrescenta telemetria de payload para obter dados adicionais: o diagnóstico se limita a metadados transitórios e a cobertura de contrato, preservando privacidade e evitando exposição de conteúdo acadêmico enviado ao modelo.
+
+A regressão final posterior a essa documentação foi executada com sucesso: `pnpm check` não reportou erros e `pnpm test` aprovou **31 testes em quatro arquivos**. A cobertura inclui o fallback auditável de extração, a síntese auditável, os contratos protegidos e os metadados não sensíveis de respostas estruturadas.
+
+## Lapis — evidências de contrato e interface
+
+Na versão publicada `409f92be`, a sessão autenticada exibiu o caderno **Identificação de Ondas Internas através de Redes Neurais** com ideia e pergunta preenchidas, o indicador **Salvo automaticamente**, os comandos de PDF/salvamento e as quatro análises em estado disponível. O seletor **Projeto Cartographer associado** apresentou o projeto correspondente `Identificação de ondas internas utilizando redes neurais`, inicialmente ainda não selecionado, estabelecendo o estado de referência para a validação da associação e da passagem à revisão.
+
+Na mesma sessão, a página confirmou que o CTA **Ir para Cartographer** está visível e que as quatro análises persistidas expõem evidências rastreáveis. A automação disponível não conseguiu alterar o elemento `select` nativo do navegador para concluir a associação sem intervenção do pesquisador; o caderno e suas demais informações não foram modificados por essa limitação. O fluxo de associação, persistência e autorização permanece coberto pelos contratos protegidos e pelos testes de integração do workspace.
+
+A passagem manual pelo CTA abriu **Descobrir** com o projeto ativo `Identificação de ondas internas utilizando redes neurais`, confirmando a navegação do fluxo concepção → revisão. Ao retornar ao Lapis, o seletor ainda exibiu **Ainda não associar revisão**. Assim, a navegação foi validada, mas a associação permanente do caderno ao projeto não foi concluída nesta sessão e permanece explicitamente listada como pendência de QA.
+
+Os contratos Lapis foram ampliados e aprovados isoladamente em 19 de agosto de 2026. O teste protegido cobre criação, atualização do caderno, associação autorizada ao projeto Cartographer, carregamento de workspace, geração e persistência dos quatro tipos de análise (`gaps`, `originality`, `grant` e `feasibility`) e bloqueio de leitura ou geração para outro usuário. A execução de `server/cartographer.routes.test.ts` aprovou **10 testes**, seguida de `pnpm check` sem erros.
+
+O serviço de IA do Lapis possui mais dois cenários de contrato: uma resposta com evidência literal de artigo associado e uma resposta vazia que ativa uma análise de contingência auditável. A interface `/lapis` foi capturada em uma sessão autenticada nos viewports de 1280 × 720 e 375 × 812, validando a navegação, o estado inicial e os comandos de criação de caderno. A criação e o acionamento manual das quatro análises permanecem disponíveis para a sessão autenticada; a automação de interface corrente não expõe controles de preenchimento/click, por isso essas interações específicas são validadas pelos contratos protegidos, sem alegar uma execução manual que não ocorreu.
+
+Em 19 de agosto de 2026, a rota publicada `https://acadcarto-dbjwmxfb.manus.space/lapis` foi aberta em sessão autenticada e renderizou corretamente. O ambiente exibiu o cabeçalho “Lapis · Concepção de pesquisa”, a orientação para transformar hipótese em projeto, o estado inicial de cadernos e os dois comandos “Novo projeto Lapis”. A barra lateral publicada apresentou **1. Concepção de pesquisa → Lapis** antes de **2. Revisão de literatura → Visão geral, Descobrir, Biblioteca e Síntese**, confirmando o fluxo concepção → mapeamento de evidências no ambiente acessível ao usuário.
+
+O formulário publicado de criação foi aberto e fechado sem submissão para não inserir dados de teste na conta. Ele disponibiliza título de trabalho, ideia de pesquisa, pergunta de pesquisa e problema/relevância, além do comando “Abrir espaço de concepção”. A inspeção confirma que o ponto de entrada para criar um caderno está funcionalmente acessível no domínio publicado; a submissão de um caderno real permanece reservada ao pesquisador autenticado.
+
+Com a autorização explícita do titular, o caderno de QA anterior foi removido pela confirmação destrutiva e a interface confirmou a remoção de suas análises vinculadas. Um novo caderno descartável, **“QA descartável — fallback de análise”**, foi criado na versão `23b4fa53` com todos os campos obrigatórios preenchidos. Ele será associado ao projeto Cartographer, terá as quatro análises verificadas e será removido ao final da validação.
+
+No novo caderno, a associação ao projeto Cartographer foi selecionada pelo controle acessível e chegou a **Salvo automaticamente**. A geração de **Lacunas de pesquisa** saiu de “Análise em processamento” em aproximadamente 24 segundos, exibiu conteúdo orientativo, o comando **Atualizar análise** e uma evidência expandível. O toast publicado confirmou “Análise Lapis concluída com fontes rastreáveis”, demonstrando que a nova proteção impede a permanência indefinida nesse estado.
+
+No mesmo caderno descartável, **Originalidade conceitual**, **Minuta para edital** e **Viabilidade** também saíram de processamento em cerca de 24 segundos, cada uma com conteúdo de contingência rastreável, controle **Atualizar análise**, uma evidência expandível e confirmação visual de conclusão. Assim, as quatro perspectivas foram verificadas no ambiente autenticado após criação, preenchimento e associação persistente do caderno.
+
+Após confirmação explícita do usuário, o caderno temporário e suas quatro análises foram removidos. A lista voltou a exibir somente o caderno principal, comprovando a limpeza dos dados de QA sem alterar o projeto Cartographer associado.
+
+## Evolução visual — Lapis, continuidade e estação Descobrir
+
+O Lapis passou a preservar rascunhos locais separados por caderno, inclusive antes da validação dos campos obrigatórios. O estado de edição comunica rascunho local, alterações pendentes, salvamento automático e sincronização concluída; a proteção de saída é habilitada enquanto houver conteúdo não persistido. O caderno também expõe exportação PDF e uma ponte visual “Ir para Cartographer”, que leva a pergunta de pesquisa ao mapeamento de evidências.
+
+Após a recomposição final de Descobrir, uma nova rodada visual completa foi realizada no estado final da aplicação. As rotas **Visão geral**, **Lapis**, **Descobrir**, **Biblioteca** e **Síntese** foram capturadas em **1280 × 720** e **375 × 812**. O dashboard manteve ciclo, métricas e próximo artefato; o Lapis mostrou caderno, autosave, exportação e quatro análises; Descobrir confirmou a mesa de descoberta e o painel de mapa da revisão; Biblioteca confirmou o painel de proveniência; e Síntese confirmou a mesa editorial e as referências ativas.
+
+Em mobile, o ciclo do dashboard refluído exibiu cinco etapas visíveis; o caderno do Lapis empilhou campos, ações e análises; Descobrir preservou entrada de busca e painel de contexto; Biblioteca manteve ações por artigo; e Síntese conservou argumento e fontes sem corte horizontal. O redesenho de Descobrir foi especificamente verificado no mesmo conjunto final de capturas, com seu modelo de dois painéis em desktop e empilhamento legível em mobile.
+
+O contrato de continuidade do Lapis foi expandido para oito cenários: critérios de autosave, alterações pendentes, restauração após recarga, recuperação após falha de sincronização, rejeição de rascunho corrompido/estrangeiro, liberação do fluxo para Cartographer, nome seguro do PDF e conteúdo exportável. A execução isolada aprovou os oito testes de `lapisNotebook.test.ts`, seguida de `pnpm check` sem erros.
+
+Na validação autenticada da rota publicada `/lapis`, o caderno ativo foi carregado com título, ideia central e vínculo visível ao projeto Cartographer **“Identificação de ondas internas utilizando redes neurais”**. A área de análises exibiu resultados já persistidos de Lacunas de pesquisa e Originalidade conceitual, cada qual com uma evidência rastreável expansível; as análises de edital e viabilidade permaneceram disponíveis para geração. Essa verificação foi feita sem alterar os campos de concepção já registrados.
+
+A abertura da evidência da análise de Lacunas revelou a fonte **“Caderno Lapis”** e um excerto literal contendo o título e a ideia do caderno, confirmando a apresentação rastreável do conteúdo persistido. A geração da minuta de edital foi acionada para observar o estado de processamento da análise; o comando passou ao estado de carregamento e continuou aguardando a resposta do provedor no momento desta inspeção.
+
+Após recarregar a rota publicada, a minuta para edital foi exibida como análise concluída, com o comando **“Atualizar análise”**, texto de contingência responsável e uma evidência expansível. Isso confirmou que a geração assíncrona foi persistida no servidor mesmo enquanto a interface ainda apresentava o estado de processamento, e que a recarga recupera corretamente o estado do caderno e das análises já gravadas.
+
+Com as três primeiras perspectivas confirmadas, a análise de **Viabilidade** foi acionada no mesmo caderno autenticado. O comando entrou em estado de processamento, enquanto as análises de lacunas, originalidade e edital permaneceram visíveis e recuperáveis na tela.
+
+Após dois intervalos de espera e uma recarga da página, as três análises anteriores continuaram persistidas, mas Viabilidade voltou a apresentar o comando **“Gerar análise”**. A persistência dessa quarta geração segue registrada como pendência de investigação; esse comportamento não afeta a recuperação das análises já concluídas nem do caderno salvo automaticamente.
+
+A consulta não destrutiva posterior ao banco confirmou que as quatro linhas de análise do caderno `lapisProjectId = 1` foram persistidas como `ready`, incluindo **Viabilidade** em `2026-08-20 00:04:46`, com o modelo de contingência auditável. A discrepância observada é, portanto, de atualização da interface após uma recarga durante a mutação, e não de persistência do servidor.
+
+Após a publicação da versão `1f412868`, uma nova recarga autenticada de `/lapis` exibiu as quatro perspectivas — Lacunas, Originalidade, Minuta para edital e Viabilidade — como concluídas, com conteúdo e evidência expansível. A nova consulta automática do workspace elimina a divergência visual observada quando uma análise termina após o carregamento da página.
+
+Antes da validação manual de continuidade, o caderno autenticado apresentou os campos obrigatórios preenchidos, o projeto Cartographer associado disponível e o campo de recursos vazio. Esse estado de referência será usado para confirmar que um texto ainda não sincronizado é restaurado após a recarga e, em seguida, removido sem alterar o conteúdo final do caderno.
+
+Na validação autenticada, foi inserida uma marca temporária no campo de recursos e a página foi recarregada imediatamente. A marca foi exibida no caderno recarregado, confirmando a restauração do rascunho local; ela foi então removida e o estado final voltou a vazio, com o indicador **“Salvo automaticamente”**. O contrato automatizado cobre a mesma sequência de saída: serialização do rascunho pendente, recuperação pelo identificador do caderno e ausência de cópia quando não há alteração. A suíte totalizou **48 testes aprovados** após essa cobertura.
+
+A cobertura foi elevada a um teste de componente em navegador simulado (`jsdom`): o `LapisExitGuard` recebe um evento real de `beforeunload`, grava o rascunho no `localStorage`, impede a saída e permite que o conteúdo seja restaurado pelo mesmo identificador de caderno. O cenário sem alterações também confirma que não há cópia local nem bloqueio de saída. Um terceiro cenário combina uma rejeição de sincronização, o evento de saída e a restauração do rascunho.
+
+Os componentes efetivamente usados pela tela também foram exercitados: o agendador de autosave espera 1,2 s antes de persistir e os três estados visuais são exibidos; o botão **Exportar PDF** é clicado com uma instância `jsPDF` simulada e produz o nome de arquivo esperado; o indicador de progresso bloqueia a ação para o Cartographer sem pergunta e libera o botão/CTA depois dela. Além disso, o `LapisWorkspace` foi renderizado com contratos tRPC simulados: uma edição real de campo criou rascunho local, passou pelo debounce, chamou a mutation, transitou de **alterações pendentes** para **salvando** e **salvo automaticamente**, e removeu o rascunho ao receber sucesso. No mesmo workspace, o clique real de **Exportar PDF** acionou o documento simulado e a tela foi verificada com o CTA Cartographer bloqueado e liberado de acordo com a pergunta. A checagem de tipos e a suíte completa passaram com **58 testes em 7 arquivos**.
+
+Para tornar a associação Lapis–Cartographer mais acessível e evitar a dependência do controle nativo, o seletor foi migrado para o componente acessível da interface. O teste de workspace abre o seletor, escolhe o projeto Cartographer e confirma a gravação de `reviewProjectId` no rascunho local. A checagem de tipos e a suíte completa passaram com **59 testes em 7 arquivos**.
+
+Na primeira abertura do domínio após a publicação candidata, a inspeção de DOM ainda identificou o controle nativo `select#workspace-review`. Após a confirmação posterior do deploy, uma abertura com novo identificador de release carregou o bundle atualizado: o campo passou a expor o valor atual e as opções por meio do controle acessível. A validação de produção segue aberta somente para a seleção e persistência efetiva da associação.
+
+Na inspeção visual autenticada do domínio publicado, o campo **Projeto Cartographer associado** foi identificado como o botão `#workspace-review` com papel `combobox`, confirmando a migração do controle nativo para o seletor acessível.
+
+No mesmo caderno autenticado, o seletor abriu uma lista com as duas opções previstas. A escolha de **Identificação de ondas internas utilizando redes neurais** atualizou o valor visível do `combobox`, liberou o CTA **Ir para Cartographer** e retornou ao estado **Salvo automaticamente** após o debounce.
+
+Na recarga seguinte, o caderno apresentou uma rejeição de validação para `project.reviewProjectId` com a mensagem de que o número deveria ser maior que zero. Assim, a persistência definitiva da associação não foi confirmada; a falha foi isolada como prioridade de correção antes do encerramento da validação autenticada.
+
+A correção normalizou o identificador inválido do rascunho anterior e restaurou o seletor para o estado não associado. No domínio publicado, a opção **Identificação de ondas internas utilizando redes neurais** foi escolhida novamente pelo seletor acessível; o valor foi exibido no `combobox` e o caderno retornou a **Salvo automaticamente**, sem nova rejeição de validação durante o debounce. A confirmação definitiva por recarga permanece como a última verificação desta jornada.
+
+A página foi recarregada após o autosave e o `combobox` continuou exibindo **Identificação de ondas internas utilizando redes neurais**. O CTA **Ir para Cartographer** permaneceu liberado. A associação Lapis–Cartographer está, portanto, validada visualmente como persistente na sessão autenticada; o toast de validação exibido era remanescente da tentativa anterior e não reapareceu após a normalização.
+
+O fechamento da QA combina essa verificação autenticada com a cobertura protegida de criação de caderno, salvamento, associação autorizada e persistência das quatro análises. A versão publicada `0bb9c3a0` contém o seletor acessível e a normalização de identificadores legados; o fluxo completo de concepção, associação e transição ao Cartographer ficou validado sem criar dados temporários adicionais na conta.
+
+Para viabilizar uma última QA autenticada sem deixar registros de teste, foi adicionada a remoção protegida de cadernos Lapis. O contrato exige posse do caderno, remove primeiro as análises vinculadas e só então o caderno; a interface exige confirmação explícita e remove o rascunho local após sucesso. A checagem de tipos e a suíte passaram com **62 testes em 7 arquivos**.
+
+Na versão publicada `d29f4667`, a sessão autenticada criou o caderno descartável **“QA descartável — associação e análises”** com ideia, problema e pergunta completos. O novo caderno foi aberto como rascunho, exibiu os quatro comandos de geração de análise e o seletor acessível de associação inicialmente não tinha uma revisão vinculada. A sequência de associação, recarga, análises e remoção será registrada a seguir sob o mesmo caderno descartável.
+
+O projeto **Identificação de ondas internas utilizando redes neurais** foi escolhido pelo seletor acessível. Após o autosave e uma recarga explícita, ele continuou exibido como valor da associação, enquanto o caderno passou a **Em maturação**. Os quatro comandos de geração — lacunas, originalidade, edital e viabilidade — permaneceram disponíveis no caderno associado.
+
+## Lapis — persistência individual após recarga
+
+Em 20 de agosto de 2026, a validação autenticada foi repetida no caderno descartável **“QA descartável — fallback de análise”** (`lapisProjectId = 90001`) na prévia de desenvolvimento. Depois da seleção de **Identificação de ondas internas utilizando redes neurais**, uma consulta não destrutiva confirmou imediatamente `reviewProjectId = 1` e a atualização do registro do caderno. A rota `/lapis` foi então recarregada sem perda do caderno nem das análises.
+
+Após a recarga, a interface recuperou conteúdo e comando **Atualizar análise** para as quatro perspectivas. A consulta não destrutiva correspondente confirmou o estado persistido de cada análise: **Lacunas** (`gaps`, 236 caracteres, 1 evidência), **Originalidade** (`originality`, 229 caracteres, 1 evidência), **Minuta para edital** (`grant`, 196 caracteres, 1 evidência) e **Viabilidade** (`feasibility`, 221 caracteres, 1 evidência). Todas as quatro linhas estavam em estado `ready`, com `evidenceJson` não vazio, comprovando continuidade individual de conteúdo e proveniência após a recarga.
+
+Durante a rodada, identificou-se que um rascunho local ou debounce pendente poderia reverter uma associação recém-escolhida. O seletor passou a persistir a troca do vínculo de modo imediato e a suíte foi ampliada para verificar o payload com `reviewProjectId` válido. A validação final executou `pnpm check` sem falhas e `pnpm test` com **64 testes aprovados em 7 arquivos**. O caderno de QA permanece apenas até a confirmação de sua remoção controlada, sem qualquer alteração no projeto Cartographer associado.
+
+Após autorização explícita do titular, o caderno temporário foi removido pela confirmação interna da interface. A tela confirmou **“Caderno Lapis removido, incluindo as análises associadas”** e voltou a listar somente o caderno de pesquisa legítimo. A verificação não destrutiva posterior confirmou `notebookCount = 0` e `analysisCount = 0` para o identificador de QA `90001`; portanto, a limpeza preservou o projeto Cartographer associado e não deixou registros temporários.

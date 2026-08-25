@@ -1,0 +1,23 @@
+CREATE TABLE `lapis_preregistrations` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`lapisProjectId` int NOT NULL,
+	`title` varchar(255) NOT NULL,
+	`researchQuestion` text,
+	`hypotheses` text,
+	`studyDesign` varchar(180),
+	`primaryOutcomes` text,
+	`secondaryOutcomes` text,
+	`samplingPlan` text,
+	`dataCollection` text,
+	`analysisPlan` text,
+	`exclusionRules` text,
+	`ethicsAndTransparency` text,
+	`deviations` text,
+	`status` enum('draft','review','locked') NOT NULL DEFAULT 'draft',
+	`integrityHash` varchar(128) NOT NULL,
+	`registeredAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `lapis_preregistrations_id` PRIMARY KEY(`id`),
+	CONSTRAINT `lapis_preregistrations_project_unique` UNIQUE(`lapisProjectId`)
+);

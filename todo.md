@@ -1,0 +1,284 @@
+# Project TODO
+
+- [x] Criar o modelo de dados para projetos de revisão, artigos salvos, extrações estruturadas e sínteses auditáveis.
+- [x] Integrar busca acadêmica pública com Semantic Scholar e fallback automático para OpenAlex.
+- [x] Criar procedimentos tRPC para projetos, busca, biblioteca e métricas do dashboard.
+- [x] Implementar a navegação lateral e o dashboard no estilo AcademiaOS, em modo claro.
+- [x] Implementar a busca semântica e a apresentação de resultados com metadados, DOI e relevância.
+- [x] Implementar a criação, alternância e gestão de projetos independentes.
+- [x] Implementar lista de leitura por projeto com salvar, marcar como lido e remover artigo.
+- [x] Implementar extração estruturada por IA com referências ao artigo de origem.
+- [x] Implementar síntese auditável por IA com afirmações associadas a fontes e trechos de apoio.
+- [x] Criar testes unitários para normalização de busca, extração e síntese.
+- [x] Verificar fluxos funcionais e responsividade na interface autenticada por meio de uma sessão de navegador autenticada verificável.
+- [x] Validar automaticamente os contratos autenticados de projeto, busca, biblioteca, extração e síntese enquanto o teste manual de sessão permanece indisponível.
+- [x] Adicionar teste autenticado para projectOverview, com projeto, métricas, artigo extraído e síntese persistida.
+- [x] Validar fluxos autenticados de criar projeto, buscar, salvar, marcar como lido, extrair e gerar síntese pelos contratos tRPC (a execução manual foi deliberadamente substituída para não alterar dados reais durante QA).
+- [x] Registrar evidências visuais verificáveis do dashboard autenticado em desktop e celular.
+- [x] Salvar checkpoint final do MVP e entregar a versão do projeto.
+- [x] Fazer a extração falhar quando qualquer evidência não puder ser validada literalmente contra o resumo.
+- [x] Validar que toda sentença factual da síntese tenha referência literal verificável antes de persistir.
+- [x] Criar testes de auditoria para evidência inválida e afirmações sem citação.
+- [x] Evitar consultas protegidas ao backend enquanto a sessão do usuário estiver ausente.
+- [x] Corrigir a extração por IA quando o modelo retornar conteúdo JSON vazio ou em formato de partes de conteúdo.
+- [x] Normalizar respostas do modelo que retornem texto estruturado como array de partes antes do retry.
+- [x] Tratar conteúdo ausente do provedor de IA como resposta recuperável antes de acessar métodos de array.
+- [x] Aplicar com sucesso a proteção contra conteúdo ausente em academicAi.ts.
+- [x] Executar testes e revalidar a extração autenticada após a proteção contra conteúdo ausente.
+- [x] Validar o esquema da extração antes de iterar evidências e acionar recuperação quando campos obrigatórios estiverem ausentes.
+- [x] Reexecutar a extração automaticamente quando a evidência retornada não for um trecho literal do resumo.
+- [x] Cobrir em teste a recuperação de evidência parafraseada pelo modelo.
+- [x] Derivar um trecho literal de apoio do resumo quando o modelo fornecer evidência parafraseada com correspondência semântica suficiente.
+- [x] Limpar o alerta de erro anterior da interface ao iniciar uma nova tentativa de extração.
+- [x] Implementar retry/fallback na extração por IA quando a resposta vier vazia ou truncada por limite de tokens.
+- [x] Adicionar teste automatizado de recuperação da extração após resposta vazia ou truncada do modelo.
+- [x] Adicionar teste automatizado cobrindo recuperação da extração quando o modelo retornar JSON truncado ou inválido.
+- [x] Validar na interface o feedback claro de falha de extração sem estado silencioso.
+- [x] Tratar respostas do LLM sem campo choices como erro recuperável sem expor exceção técnica.
+- [x] Tratar JSON vazio ou corrompido de citações da síntese sem expor erro de parse na interface.
+- [x] Reexecutar a síntese quando o modelo não devolver um trecho literal verificável para uma referência.
+- [x] Extrair o objeto JSON de respostas do modelo que incluam texto adicional ou blocos Markdown antes da validação da síntese.
+- [x] Gerar uma síntese auditável determinística a partir de trechos literais quando todas as tentativas estruturadas do provedor falharem.
+- [x] Executar teste e revalidar a extração autenticada após a correção de resposta sem choices.
+- [x] Diagnosticar o formato da resposta do provedor quando choices estiver ausente para ajustar a chamada estruturada.
+- [x] Inspecionar a mensagem de erro não sensível do provedor de IA quando a resposta vier sem choices.
+- [x] Converter respostas HTTP 200 que contenham um campo error do provedor em exceções explícitas no adaptador de IA.
+- [x] Remover response_format das chamadas acadêmicas para compatibilidade com o modo Web Search do provedor e normalizar JSON retornado em texto.
+- [x] Diagnosticar finish_reason e tamanho do conteúdo quando o modelo retorna choices sem JSON utilizável.
+- [x] Inspecionar as chaves não sensíveis de choice e message quando o conteúdo do modelo estiver ausente.
+- [x] Executar e registrar uma validação autenticada de extração após as correções de resposta estruturada.
+- [x] Gerar uma extração auditável de contingência a partir de sentenças literais quando as duas tentativas estruturadas forem inválidas.
+- [x] Documentar a limitação de observabilidade do payload do provedor sem reintroduzir telemetria de conteúdo sensível.
+- [x] Entregar a versão publicada ao usuário após o checkpoint de fechamento.
+- [x] Remover a telemetria temporária de diagnóstico da resposta do LLM antes da entrega final.
+- [x] Confirmar a ausência da telemetria temporária e executar a checagem de tipagem após o cleanup.
+- [x] Validar explicitamente a responsividade autenticada em desktop e mobile para Dashboard, Descobrir, Biblioteca e Síntese.
+- [x] Registrar a evidência visual autenticada da síntese pronta e do dashboard em ambos os formatos de tela.
+- [x] Corrigir a rota direta `/discover` para que a página Descobrir não resulte em 404.
+- [x] Reorganizar os controles dos itens da biblioteca em telas móveis para preservar a largura legível dos títulos e resumos.
+- [x] Revalidar e registrar as quatro telas autenticadas após os ajustes finais, em desktop e mobile.
+- [x] Registrar no QA os resultados verificáveis das capturas finais de Dashboard e Síntese nos dois viewports.
+- [x] Salvar um checkpoint de fechamento que inclua a contingência de extração validada.
+- [x] Registrar em QA o contrato de diagnóstico de respostas sem choices, sem persistir conteúdo do provedor.
+- [x] Cobrir em teste os metadados não sensíveis da resposta estruturada antes de concluir a investigação do provedor.
+- [x] Cancelado pelo usuário: revisão da área de conta com sessão, perfil e saída.
+- [x] Cancelado pelo usuário: métricas adicionais de uso por usuário e projeto.
+- [x] Cancelado pelo usuário: integração Stripe e modelagem de assinaturas do Cartographer.
+- [x] Cancelado pelo usuário: fluxos de assinatura, gerenciamento de plano e confirmação de pagamento.
+- [x] Cancelado pelo usuário: testes e publicação da expansão de conta, métricas e pagamentos.
+- [x] Recuperar o escopo previamente proposto para o Lapis e defini-lo como plataforma de concepção e maturação de projetos de pesquisa.
+- [x] Modelar projetos de concepção do Lapis vinculáveis a projetos de revisão Cartographer.
+- [x] Construir o espaço de concepção do Lapis com campos estruturados e persistência segura.
+- [x] Integrar o detector de lacunas do Lapis às evidências rastreáveis da biblioteca Cartographer.
+- [x] Implementar a verificação de originalidade conceitual com transparência sobre o escopo pesquisado.
+- [x] Implementar o assistente de grant writing como rascunho, sem alegar conhecimento de editais não fornecidos.
+- [x] Implementar o estimador de viabilidade com premissas e evidências rastreáveis do caderno do projeto.
+- [x] Cobrir os fluxos do Lapis com testes automatizados e validação visual autenticada.
+- [x] Adicionar testes explícitos dos contratos Lapis para criação, atualização, workspace, quatro análises, autorização e isolamento por usuário.
+- [x] Executar validação autenticada da UI Lapis: criar caderno, salvar campos, associar projeto e confirmar cada análise persistida.
+- [x] Substituir o seletor nativo de associação Lapis–Cartographer por um componente acessível e validá-lo no fluxo publicado.
+- [x] Publicar a versão com o seletor acessível de associação Lapis–Cartographer.
+- [x] Validar no domínio publicado a seleção e a persistência da associação Lapis–Cartographer pelo novo seletor.
+- [x] Registrar em QA a evidência autenticada da associação feita pelo seletor acessível publicado.
+- [x] Corrigir a serialização do `reviewProjectId` do Lapis para que a associação acessível persista sem enviar valor não positivo.
+- [x] Implementar remoção segura de caderno Lapis e suas análises, com autorização, para permitir QA descartável sem poluir a conta.
+- [x] Executar QA autenticado ponta a ponta em caderno descartável: criar, preencher, associar, recarregar, confirmar análises e remover.
+- [x] Aplicar limite de tempo e fallback auditável à geração Lapis para que análises não permaneçam em processamento indefinidamente.
+- [x] Registrar em QA as evidências persistidas dos contratos e dos fluxos autenticados do Lapis.
+- [x] Reordenar a navegação para apresentar Lapis antes dos módulos de revisão do Cartographer.
+- [x] Publicar a versão que inclui o Lapis e confirmar o acesso público à nova rota.
+- [x] Registrar o acesso publicado do Lapis e orientar a validação do fluxo concepção → Cartographer.
+- [x] Salvar e publicar o checkpoint da expansão Lapis.
+- [x] Abrir o domínio publicado em `/lapis` e confirmar a renderização do módulo Lapis.
+- [x] Registrar em QA a evidência do acesso publicado e orientar o fluxo concepção → Cartographer nesse ambiente.
+- [x] Reler e confirmar a persistência do registro de QA sobre a rota publicada `/lapis` e o fluxo concepção → Cartographer.
+- [x] Analisar as telas e diretrizes visuais da apresentação original do AcademiaOS para criar uma matriz de fidelidade.
+- [x] Implementar salvamento automático com estado visível no caderno Lapis e proteção contra perda de texto em edição.
+- [x] Implementar exportação do caderno Lapis para PDF com conteúdo do projeto e análises disponíveis.
+- [x] Adicionar um indicador visual de progresso para a passagem Lapis → Cartographer.
+- [x] Redesenhar dashboard, área de usuário e telas do Cartographer para corresponder à proposta visual da apresentação.
+- [x] Criar testes automatizados para salvamento automático, exportação e transição do fluxo de pesquisa.
+- [x] Validar visualmente a fidelidade das telas em desktop e mobile contra a proposta de referência.
+- [x] Salvar e publicar o checkpoint da evolução de continuidade e identidade visual do AcademiaOS.
+- [x] Persistir imediatamente um rascunho local do Lapis, inclusive antes das validações mínimas, e removê-lo após sincronização bem-sucedida.
+- [x] Proteger a saída ou atualização da página quando houver alterações pendentes no caderno Lapis e cobrir cenários de falha de rede e refresh.
+- [x] Reorganizar o ciclo de pesquisa do dashboard em telas móveis para exibir todas as etapas sem depender de rolagem horizontal oculta.
+- [x] Redesenhar explicitamente Biblioteca e Síntese conforme a matriz VISUAL_ALIGNMENT e registrar evidências específicas de cada tela.
+- [x] Executar e registrar a validação comparativa completa em desktop e mobile para Dashboard, Lapis, Descobrir, Biblioteca e Síntese.
+- [x] Cobrir em teste e QA a restauração de rascunho Lapis após falha de sincronização e recarga da página.
+- [x] Validar e registrar visualmente Descobrir, Biblioteca e Síntese contra a proposta de referência em desktop e mobile.
+- [x] Adicionar testes de integração para autosave, exportação PDF e indicador Lapis → Cartographer.
+- [x] Cobrir o evento de saída e uma falha de sincronização mantendo o rascunho local recuperável.
+- [x] Executar QA manual de rascunho local após recarga e registrar o resultado em QA_VALIDATION.md.
+- [x] Redesenhar explicitamente a tela Descobrir conforme a matriz VISUAL_ALIGNMENT e registrar a evidência de implementação.
+- [x] Persistir e reler em QA_VALIDATION.md o resultado comparativo desktop/mobile das cinco telas acadêmicas.
+- [x] Reexecutar a validação visual final das cinco telas após o redesenho de Descobrir e registrar o resultado em QA_VALIDATION.md.
+- [x] Registrar em QA_VALIDATION.md a evidência do redesenho final de Descobrir com as capturas desktop e mobile pós-ajuste.
+- [x] Reler QA_VALIDATION.md e confirmar a persistência das evidências finais de Dashboard, Lapis, Descobrir, Biblioteca e Síntese.
+- [x] Atualizar automaticamente o estado das análises Lapis que terminam após uma recarga do caderno.
+- [x] Adicionar teste do fluxo real de beforeunload/recarga que grava e restaura o rascunho local após falha de sincronização.
+- [x] Cobrir em componente o debounce de autosave e o estado visual após a persistência do Lapis.
+- [x] Cobrir em integração a exportação PDF acionada pela interface do Lapis, com jsPDF simulado.
+- [x] Cobrir em componente os estados e a chamada para ação do indicador Lapis → Cartographer.
+- [x] Cobrir o LapisWorkspace com tRPC simulado: edição, debounce, mutation de autosave bem-sucedida e transição visual completa.
+- [x] Cobrir no LapisWorkspace a limpeza do rascunho local e a sincronização do snapshot após o autosave bem-sucedido.
+- [x] Cobrir no LapisWorkspace o clique real de exportação PDF com jsPDF simulado.
+- [x] Cobrir no LapisWorkspace os estados bloqueado/liberado e a ação do CTA para Cartographer.
+- [x] Evitar a notificação de caderno não encontrado após uma exclusão bem-sucedida do próprio caderno.
+- [x] Recarregar um caderno Lapis descartável após gerar as quatro análises e confirmar que lacunas, originalidade, edital e viabilidade continuam presentes com evidências.
+- [x] Registrar em QA_VALIDATION.md a persistência individual das quatro análises Lapis após recarga, com apoio de consulta não destrutiva quando necessário.
+- [x] Impedir que um autosave pendente com associação antiga sobrescreva o vínculo Lapis–Cartographer após a recarga do caderno.
+- [x] Auditar o AcademiaOS contra os materiais de proposta anexados e registrar uma matriz de aderência por capacidade.
+- [x] Implementar a etapa Método com definição estruturada do desenho de estudo, população, critérios, estratégia analítica e considerações éticas.
+- [x] Implementar cronograma interativo do protocolo com marcos, datas, status e atualização persistida.
+- [x] Exportar a síntese auditável diretamente para DOCX, preservando argumentos, referências e trechos de evidência.
+- [x] Exportar a síntese auditável diretamente para LaTeX, preservando citações e proveniência.
+- [x] Implementar triagem transparente no Cartographer com decisões de inclusão/exclusão e justificativas auditáveis.
+- [x] Implementar detecção de duplicatas e de provável sobreposição entre estudos salvos no Cartographer.
+- [x] Implementar síntese qualitativa/narrativa estruturada no Cartographer, com rastreabilidade de evidências.
+- [x] Cobrir os novos módulos com testes automatizados, QA visual autenticado e documentação de aderência atualizada.
+- [x] Executar QA visual autenticado dos novos fluxos: Método, cronograma, triagem, alertas de duplicidade, narrativa e controles de exportação.
+- [x] Executar QA visual autenticado específico de um alerta de possível duplicidade ou sobreposição no Cartographer e registrar a evidência.
+- [x] Implementar diagrama PRISMA derivado exclusivamente das decisões de triagem e exportável em formato de imagem.
+- [x] Implementar importação autenticada de PDFs, armazenamento seguro e extração de texto integral vinculada ao artigo salvo.
+- [x] Criar conectores de fontes oficiais CNPq e CAPES quando houver interfaces públicas adequadas, com proveniência e data de consulta.
+- [x] Enriquecer o assistente de grant writing do Lapis com editais oficiais consultados, sem inferir critérios ausentes.
+- [x] Implementar a etapa Manuscrito com estrutura rastreável a partir do Método e da síntese auditável.
+- [x] Criar testes e executar QA autenticado de PRISMA, PDF, editais e Manuscrito antes da publicação.
+- [x] Corrigir a extração real de PDF que falhou no QA autenticado ao solicitar metadados e texto em paralelo.
+- [x] Auditar novamente os slides, as telas propostas, o menu lateral e os capítulos 3 e 4 do documento de ecossistema contra o estado atual do AcademiaOS.
+- [x] Criar o mapa de cobertura das ferramentas propostas, distinguindo capacidades implementadas, parciais e ainda ausentes.
+- [x] Exportar o Manuscrito em DOCX e LaTeX, mantendo título, resumo, palavras-chave, seções e proveniência de conteúdo.
+- [x] Implementar a próxima ferramenta priorizada segundo a sequência de pesquisa, com navegação e modelos de dados coerentes.
+- [x] Reorganizar a navegação lateral com os nomes das ferramentas do ecossistema e seus estágios de pesquisa.
+- [x] Remover os cadernos, revisão, artigo e documentos temporários de QA autorizados pelo usuário.
+- [x] Adicionar estados de carregamento acessíveis aos botões de exportação DOCX e LaTeX do Manuscrito.
+- [x] Implementar Vault para catálogo de dados FAIR, registro de proveniência, classificação de sensibilidade e checklist LGPD por projeto.
+- [x] Implementar Qualia para corpus qualitativo, códigos hierárquicos, trechos codificados e síntese temática rastreável.
+- [x] Implementar Analista para plano estatístico explicável, variáveis, checagens, código reproduzível e relatório de resultados rascunhado.
+- [x] Implementar Scriptorium para documento estruturado, versões por seção, restauração e referências vivas vinculadas à biblioteca.
+- [x] Testar, validar e documentar os módulos Vault, Qualia, Analista e Scriptorium antes da publicação.
+- [x] Corrigir a importação de autenticação da rota Prereg que falha durante a transformação do cliente.
+- [x] Implementar upload seguro no Vault com validação de arquivo, classificação de dados, finalidade de tratamento e registro de consentimento LGPD.
+- [x] Adicionar visualizações reproduzíveis no Analista, vinculadas ao plano estatístico e às variáveis declaradas.
+- [x] Evoluir o Scriptorium com editor rico por seções, diffs de versões, restauração, verificação de citações e revisão de substância rastreável.
+- [x] Preparar a integração Zotero no Scriptorium com conector autenticado ou importação controlada de referências, conforme disponibilidade de credenciais.
+- [x] Implementar cadastro individual e protegido de biblioteca e chave Zotero por professor-pesquisador, sem credenciais globais do projeto.
+- [x] Implementar Matchmaker com adequação de periódico, checklist de submissão, carta de apresentação e resposta a revisores rastreável.
+- [x] Implementar Vigil com verificações transparentes de integridade, alertas de referências afetadas, materiais suplementares e difusão pós-publicação.
+- [x] Testar, validar e documentar a expansão de Vault, Analista, Scriptorium, Matchmaker e Vigil antes da publicação.
+- [x] Mapear a referência visual enviada e os ciclos de pesquisa contra as rotas e dados já disponíveis no AcademiaOS.
+- [x] Redesenhar o menu lateral conforme a referência, com macroetapas de pesquisa e acesso inequívoco às ferramentas implementadas.
+- [x] Reconstruir o dashboard conforme a referência, com ciclo de vida, projeto ativo, tarefas, IA e indicadores conectados a dados reais.
+- [x] Alinhar os ciclos de criação de pesquisa entre concepção, protocolo, pré-registro, coleta/dados, análise, escrita, submissão, publicação e pós-publicação.
+- [x] Cobrir os novos componentes e fluxos de dashboard com testes, validação visual responsiva e documentação de QA.
+- [x] Publicar a experiência redesenhada do AcademiaOS.
+- [x] Revisar a composição do workspace Lapis e os contratos persistidos de lacunas, originalidade, editais e viabilidade.
+- [x] Adicionar uma navegação interna do Lapis com submenus direcionados a Lacunas, Originalidade, Editais e Viabilidade.
+- [x] Vincular cada submenu ao caderno ativo e à respectiva análise auditável, sem duplicar dados ou análises.
+- [x] Testar a navegação dos módulos do Lapis e validar sua apresentação em desktop e celular.
+- [x] Publicar a navegação interna do Lapis.
+- [x] Remover a entrada Equipe da barra lateral do AcademiaOS e ajustar a cobertura de navegação associada.
+- [x] Revisar fontes abertas e contratos atuais para busca rastreável de registros acadêmicos no módulo Originalidade do Lapis.
+- [x] Implementar consulta de registros acadêmicos no Lapis com fonte, data de consulta, critérios e resultados auditáveis.
+- [x] Adicionar submenus ao Cartographer para descoberta semântica, biblioteca/duplicatas, triagem e PRISMA, extração estruturada e síntese auditável/qualitativa.
+- [x] Exibir scores de relevância e justificativas da busca semântica nos resultados do Cartographer.
+- [x] Adicionar alerta rastreável de referências potencialmente retratadas e mapa de citações navegável aos resultados do Cartographer.
+- [x] Conectar cada submenu do Cartographer às rotas e evidências persistidas do fluxo de revisão.
+- [x] Cobrir a busca de registros e a navegação do Cartographer com testes, validação visual e documentação de QA.
+- [x] Publicar a expansão de Originalidade e Cartographer.
+- [x] Mapear o estado atual do Vault contra princípios FAIR, LGPD e requisitos CEP/Conep que possam ser representados com segurança no produto.
+- [x] Adicionar trilha de versões auditáveis e metadados de proveniência a ativos e datasets do Vault.
+- [x] Gerar dicionário de dados a partir de metadados e registrar limites quando não houver código de limpeza disponível.
+- [x] Ampliar controles de governança LGPD/CEP–Conep, incluindo finalidade, base legal, consentimento, risco e pendências documentais.
+- [x] Preparar integrações de publicação para Zenodo, Dataverse e repositórios institucionais, mantendo credenciais e depósito final sob controle do pesquisador.
+- [x] Documentar os limites atuais de criptografia ponta a ponta e privacidade diferencial, sem alegar proteção que não esteja implementada.
+- [x] Cobrir a evolução do Vault com testes, validação visual e documentação de QA.
+- [x] Publicar a expansão FAIR/LGPD do Vault.
+- [x] Organizar o Vault em submenus contextuais para ativos, versões e dicionário, governança e publicação, preservando acessibilidade e rotas existentes.
+- [x] Mapear os estados e contratos atuais que compõem a interface consolidada de Lapis, Cartographer e Prereg.
+- [x] Integrar visualmente a descoberta multi-fonte do Cartographer, com cobertura e proveniência por resultado.
+- [x] Consolidar a barra lateral com entradas e submenus acessíveis para Lapis, Cartographer e Prereg.
+- [x] Atualizar os workspaces de Lapis, Cartographer e Prereg para refletir o fluxo de pesquisa e os limites auditáveis disponíveis.
+- [x] Validar a interface consolidada em desktop e celular, com testes de regressão e documentação de QA.
+- [x] Publicar a interface consolidada do AcademiaOS.
+- [x] Revisar documentação e limites de acesso público para Europe PMC/PubMed, Crossref, OpenAlex, SciELO, OpenAIRE, arXiv e CORE.
+- [x] Integrar fontes públicas compatíveis ao adaptador de descoberta, preservando origem, identificadores e critérios de relevância.
+- [x] Exibir a cobertura, a proveniência e os scores de relevância das novas fontes na busca do Cartographer.
+- [x] Restaurar Prereg como entrada explícita no menu lateral e disponibilizar seus submenus de protocolo, guardrails, certificado e revisão crítica.
+- [x] Revisar a capacidade atual do Prereg frente aos requisitos de coerência metodológica, poder estatístico, registros e DOI, documentando limites sem simulação enganosa.
+- [x] Implementar o Advogado do Diabo metodológico no Prereg, com revisão crítica rastreável de vieses, confundimento e ambiguidades do plano.
+- [x] Expor o Advogado do Diabo como submenu e painel próprio do Prereg, ligado ao protocolo ativo e aos limites explícitos da análise.
+- [x] Cobrir a descoberta expandida e a navegação Prereg com testes, QA visual e documentação de fontes.
+- [x] Publicar a expansão de fontes e a navegação Prereg.
+- [x] Mapear o modelo atual de planos de repositório para adicionar autorização explícita de depósito sem envio externo automático.
+- [x] Persistir o aceite, a revogação e o registro auditável de confirmação do pesquisador para cada plano de depósito.
+- [x] Construir no Vault a interface acessível de revisão, confirmação explícita e revogação da autorização de depósito autenticado.
+- [x] Cobrir o fluxo de autorização de depósito com testes, validação visual e documentação de limites.
+- [x] Publicar a confirmação explícita de depósito autenticado no Vault.
+- [x] Auditar a cobertura atual do Qualia frente a codificação assistida, transparência de IA, multimídia, concordância, memos e exportação.
+- [x] Adicionar modelos e contratos auditáveis para sugestões interpretáveis, decisões de codificador, memos, dupla codificação e métricas de concordância.
+- [x] Construir submenus contextuais e painéis Qualia para corpus, códigos, sugestões, concordância, memos e relatório.
+- [x] Documentar limites de análise multimídia, interpretação por IA e métricas de concordância, com testes e validação visual.
+- [x] Publicar a evolução do Qualia com análise qualitativa interpretável.
+- [x] Revisar fontes abertas e contratos atuais para busca rastreável de registros acadêmicos no módulo Originalidade do Lapis.
+- [x] Implementar consulta de registros acadêmicos no Lapis com fonte, data de consulta, critérios e resultados auditáveis.
+- [x] Adicionar submenus ao Cartographer para descoberta semântica, biblioteca/duplicatas, triagem e PRISMA, extração estruturada e síntese auditável/qualitativa.
+- [x] Conectar cada submenu do Cartographer às rotas e evidências persistidas do fluxo de revisão.
+- [x] Cobrir a busca de registros e a navegação do Cartographer com testes, validação visual e documentação de QA.
+- [x] Publicar a expansão de Originalidade e Cartographer.
+- [x] Validar após a restauração o acesso ao AcademiaOS, aos fluxos essenciais e ao estado publicado antes de novas alterações.
+- [x] Auditar a cobertura restaurada de Analista e Scriptorium frente a análise explicável e escrita acadêmica rastreável.
+- [x] Criar no Analista notebooks reprodutíveis e versionados, vinculados ao plano estatístico e sem executar dados automaticamente.
+- [x] Acrescentar recomendação estatística estruturada e justificável ao Analista, mantendo revisão humana obrigatória.
+- [x] Acrescentar ao Scriptorium uma comparação rastreável por seção entre versões e âncoras para seu workspace.
+- [x] Organizar submenus contextuais concisos de Analista e Scriptorium na barra lateral.
+- [x] Adicionar ao Scriptorium uma visualização de leitura estruturada para conferir a composição do manuscrito antes da exportação.
+- [x] Testar, validar visualmente e documentar limites da evolução de Analista e Scriptorium.
+- [x] Publicar a evolução de Analista e Scriptorium.
+- [x] Mapear os pontos de identidade, título, favicon e entrada de sessão do AcademiaOS.
+- [x] Criar o favicon e o sistema visual próprio do AcademiaOS, inspirado na composição editorial das referências.
+- [x] Implementar uma capa de acesso responsiva em dois painéis e aplicar o nome oficial AcademiaOS em toda a aplicação.
+- [x] Cobrir, validar visualmente e documentar a identidade atualizada do AcademiaOS.
+- [x] Publicar a identidade atualizada do AcademiaOS.
+- [x] Adicionar à capa o crédito institucional de desenvolvimento, Prof. Rogério G. Bittencourt e assinatura do INOVALAB.
+- [x] Validar visualmente e publicar o crédito institucional na capa do AcademiaOS.
+- [x] Propagar a autoria institucional do Prof. Rogério G. Bittencourt e do INOVALAB nas superfícies públicas pertinentes do site.
+- [x] Atualizar a documentação de marca e autoria com a referência ao perfil GitHub rgbittencourt.
+- [x] Verificar o vínculo do repositório GitHub e preparar a atualização no destino autorizado pelo usuário.
+- [x] Definir um cenário de pesquisa-exemplo e o percurso completo pelas ferramentas do AcademiaOS.
+- [x] Criar os artefatos autorizados do projeto-exemplo e capturar telas representativas dos fluxos.
+- [x] Redigir o Manual de Uso profissional, ilustrado e detalhado para todas as ferramentas.
+- [x] Revisar a consistência do manual, anexar as imagens de apoio e entregar os materiais.
+- [x] Gerar a versão formatada do Manual de Uso em DOCX e a cópia correspondente em PDF.
+- [x] Enviar o DOCX convertido para Google Docs e o PDF à pasta Google Drive indicada pela conta inovalab.cte@gmail.com.
+- [x] Publicar a versão do manual e os materiais de apoio no repositório GitHub autorizado de rgbittencourt.
+- [x] Reposicionar o bloco de créditos sem reduzir, ocultar ou comprimir o manifesto, o percurso de ferramentas e o painel de acesso da capa.
+- [x] Validar a composição corrigida da capa em desktop e móvel antes da publicação.
+- [x] Enviar os logotipos fornecidos do INOVALAB e do IFSC ao armazenamento estático do projeto.
+- [x] Inverter na faixa editorial as posições do percurso de pesquisa e do bloco de créditos.
+- [x] Substituir os ícones provisórios pelos logotipos oficiais do INOVALAB e do IFSC na capa.
+- [x] Cobrir em teste, validar visualmente e publicar a capa institucional atualizada.
+- [x] Posicionar o logotipo do IFSC em destaque no topo do painel editorial azul-marinho.
+- [x] Reposicionar o INOVALAB no rodapé como assinatura de desenvolvimento, sem competir com o IFSC.
+- [x] Validar em desktop e celular a nova hierarquia institucional e publicar a capa corrigida.
+- [x] Remover a legenda redundante sob o logotipo do IFSC e aproximar a marca AcademiaOS com espaçamento institucional adequado.
+- [x] Alinhar pelo topo o crédito de desenvolvimento com a assinatura INOVALAB e aplicar alinhamento à direita ao texto do crédito.
+- [x] Elevar sutilmente o bloco institucional e validar a composição ajustada em desktop e celular.
+- [x] Mover o bloco de créditos e a assinatura INOVALAB para o lado esquerdo da faixa institucional.
+- [x] Mover o bloco “Uma pesquisa, um percurso” para o lado direito da faixa institucional.
+- [x] Validar em desktop e celular a troca dos lados e publicar a capa atualizada.
+- [x] Criar uma assinatura institucional combinada IFSC–INOVALAB inspirada na referência fornecida.
+- [x] Aumentar o respiro entre a assinatura institucional e a mensagem editorial da capa.
+- [x] Usar o mesmo símbolo AcademiaOS da capa no cabeçalho da navegação autenticada.
+- [x] Cobrir em teste, validar em desktop e celular e publicar a identidade visual unificada.
+- [x] Corrigir o enquadramento da marca INOVALAB para que todo o logotipo seja exibido na assinatura institucional.
+- [x] Validar em desktop e celular a assinatura IFSC–INOVALAB sem cortes e publicar a correção.
+- [x] Avaliar uma integração auditável com o Retícula para ampliar a descoberta de literatura.
+- [x] Priorizar melhorias funcionais e de experiência para o próximo ciclo do AcademiaOS.
+- [x] Comparar a hospedagem atual com uma arquitetura em Cloudflare, incluindo autenticação, banco de dados e armazenamento.
+- [x] Auditar o código e a documentação do AcademiaOS para publicação pública segura no GitHub.
+- [ ] Sincronizar código-fonte, README e materiais públicos no repositório github.com/rgbittencourt/academiaos, excluindo segredos, dados e artefatos internos.
+- [x] Atualizar a documentação da estratégia do Retícula, reconhecendo-o como implementação própria hospedada no ChatGPT Sites.
+- [x] Inspecionar o Retícula quando o endereço público e o mecanismo de intercâmbio forem disponibilizados pelo responsável.
+- [x] Avaliar a interface pública e o repositório do Retícula para recomendar API, importação bibliográfica ou consulta federada.
