@@ -310,3 +310,7 @@
 - [x] Corrigir o desalinhamento do ícone no botão “Abrir Retícula com coordenadas do Lapis” exibido no Cartographer.
 - [x] Resolver automaticamente, no Cartographer, o caderno Lapis associado ao projeto ativo para abrir o Retícula sem passagem obrigatória pelo Lapis.
 - [x] Restaurar o atalho editável do Retícula no Lapis e garantir que ambos os pontos de entrada usem as mesmas três coordenadas do caderno associado.
+- [x] Liberar automaticamente o Retícula no Cartographer quando houver um caderno Lapis elegível correspondente ao projeto ativo, sem exigir associação manual não ambígua.
+- [x] Corrigir o seletor de caderno Lapis para que títulos longos não excedam a largura do painel lateral do Cartographer.
+- [x] Corrigir a regressão publicada que mantém indisponíveis os botões Retícula no Lapis e no Cartographer apesar de o caderno conter dados suficientes.
+- [x] Corrigir o alinhamento responsivo dos botões Abrir Retícula e Ir para Cartographer no bloco de transição do Lapis.
