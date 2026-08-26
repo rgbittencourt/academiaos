@@ -305,4 +305,4 @@
 - [x] Implementar a prévia revisável de tema, assunto e disciplina do Lapis no atalho do AcademiaOS para o Retícula.
 - [x] Sincronizar no GitHub a integração Lapis–Retícula e a coleção de manuais publicada no AcademiaOS.
 - [x] Corrigir o acionamento Lapis–Retícula para abrir efetivamente o atlas com as três coordenadas revisadas.
-- [ ] Armazenar o Manual Geral e os manuais individuais no Google Drive da conta inovalab.cte@gmail.com.
+- [x] Armazenar o Manual Geral e os manuais individuais no Google Drive da conta inovalab.cte@gmail.com.
