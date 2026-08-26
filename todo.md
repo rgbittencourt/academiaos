@@ -303,4 +303,4 @@
 - [x] Produzir um Manual Geral do AcademiaOS com o percurso integrado, autenticação e limites de uso.
 - [x] Revisar, organizar e disponibilizar os manuais finais em formato reutilizável.
 - [x] Implementar a prévia revisável de tema, assunto e disciplina do Lapis no atalho do AcademiaOS para o Retícula.
-- [ ] Sincronizar no GitHub a integração Lapis–Retícula e a coleção de manuais publicada no AcademiaOS.
+- [x] Sincronizar no GitHub a integração Lapis–Retícula e a coleção de manuais publicada no AcademiaOS.
