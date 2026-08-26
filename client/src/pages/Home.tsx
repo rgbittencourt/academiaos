@@ -47,6 +47,9 @@ function safeSearchContext(value: string | null) {
 }
 
 function readReticulaSearchContext(): ReticulaSearchContext {
+  if (typeof window === "undefined") {
+    return { query: "", theme: "", subject: "", discipline: "", fromReticula: false };
+  }
   const params = new URLSearchParams(window.location.search);
   const theme = safeSearchContext(params.get("theme"));
   const subject = safeSearchContext(params.get("subject"));
@@ -237,11 +240,12 @@ function SynthesisView({ projectId, synthesis, articleCount, projectName }: { pr
 export default function Home() {
   const [location] = useLocation(); const page = pageTitles[location] ?? pageTitles["/"];
   const reticulaContext = useMemo(() => readReticulaSearchContext(), []);
-  const [cartographerHash, setCartographerHash] = useState(() => window.location.hash);
+  const [cartographerHash, setCartographerHash] = useState(() => typeof window === "undefined" ? "" : window.location.hash);
   const { isAuthenticated } = useAuth();
   const { data: projects = [], isLoading: projectsLoading } = trpc.cartographer.projects.useQuery(undefined, { enabled: isAuthenticated });
   const [projectId, setProjectId] = useState<number | null>(null);
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const updateHash = () => setCartographerHash(window.location.hash);
     window.addEventListener("hashchange", updateHash);
     return () => window.removeEventListener("hashchange", updateHash);
@@ -249,6 +253,9 @@ export default function Home() {
   useEffect(() => { if (!projectId && projects[0]) setProjectId(projects[0].id); }, [projects, projectId]);
   const overviewInput = useMemo(() => ({ projectId: projectId ?? 0 }), [projectId]);
   const overview = trpc.cartographer.projectOverview.useQuery(overviewInput, { enabled: Boolean(projectId) && isAuthenticated });
+  // O DashboardLayout controla a capa e o carregamento de autenticação. Esta
+  // saída evita executar áreas protegidas com estado de sessão ainda ausente.
+  if (!isAuthenticated) return <DashboardLayout>{null}</DashboardLayout>;
   if (projectsLoading) return <DashboardLayout><div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-amber-700" /></div></DashboardLayout>;
   if (!projectId) return <DashboardLayout><EmptyProject onCreated={setProjectId} /></DashboardLayout>;
   const data = overview.data; const articles = data?.articles ?? []; const savedIds = new Set(articles.map((article: any) => article.externalId));
@@ -266,7 +273,7 @@ function DashboardView({ projectId, data, articles }: { projectId: number; data:
 function AcademiaDashboard({ projectId, data, articles }: { projectId: number; data: any; articles: any[] }) {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { data: lapisProjects = [] } = trpc.lapis.projects.useQuery();
+  const { data: lapisProjects = [] } = trpc.lapis.projects.useQuery(undefined, { enabled: Boolean(user) });
   const activeLapisProject = lapisProjects.find((item: any) => item.reviewProjectId === projectId);
   const activeLapisProjectId = activeLapisProject?.id ?? 0;
   const workspaceInput = useMemo(() => ({ lapisProjectId: activeLapisProjectId }), [activeLapisProjectId]);
