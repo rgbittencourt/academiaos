@@ -13,7 +13,9 @@ import { cn } from "@/lib/utils";
 import { deriveResearchCycle } from "@/lib/researchCycle";
 import { trpc } from "@/lib/trpc";
 import { CartographerEvidenceTools } from "@/components/CartographerEvidenceTools";
+import { ReticulaCoordinatesDialog } from "@/components/ReticulaCoordinatesDialog";
 import { downloadSynthesisDocx, downloadSynthesisLatex } from "@/lib/synthesisExport";
+import type { LapisNotebookForm } from "@/lib/lapisNotebook";
 import { PdfImportDialog } from "@/components/PdfImportDialog";
 import { PrismaDiagram } from "@/components/PrismaDiagram";
 import { RisImportDialog } from "@/components/RisImportDialog";
@@ -39,7 +41,6 @@ const articleSourceLabels: Record<ArticleResult["source"], string> = {
   semantic_scholar: "Semantic Scholar", openalex: "OpenAlex", europe_pmc: "Europe PMC", pubmed: "PubMed", crossref: "Crossref", scielo: "SciELO", openaire: "OpenAIRE", arxiv: "arXiv", core: "CORE",
 };
 
-const RETICULA_URL = "https://reticula-atlas-ideias.rogerio-bittencourt-1a9.workers.dev/";
 type ReticulaSearchContext = { query: string; theme: string; subject: string; discipline: string; fromReticula: boolean };
 
 function safeSearchContext(value: string | null) {
@@ -59,15 +60,12 @@ function readReticulaSearchContext(): ReticulaSearchContext {
   };
 }
 
-function createReticulaUrl(query: string, context: ReticulaSearchContext) {
-  const params = new URLSearchParams({ from: "academiaos" });
-  const normalizedQuery = safeSearchContext(query);
-  const theme = context.theme || normalizedQuery;
-  const subject = normalizedQuery || context.subject || context.theme;
-  if (theme) params.set("theme", theme);
-  if (subject) params.set("subject", subject);
-  if (context.discipline) params.set("discipline", context.discipline);
-  return `${RETICULA_URL}?${params.toString()}`;
+function lapisProjectToNotebookForm(project: any): LapisNotebookForm {
+  return { title: project?.title ?? "", researchIdea: project?.researchIdea ?? "", problemStatement: project?.problemStatement ?? "", researchQuestion: project?.researchQuestion ?? "", targetAgency: project?.targetAgency ?? "", resources: project?.resources ?? "", reviewProjectId: project?.reviewProjectId ?? null };
+}
+
+function lapisWorkspaceToReticulaContext(workspace: any) {
+  return [workspace?.method?.studyDesign, workspace?.method?.setting, workspace?.method?.population, workspace?.method?.variables, workspace?.method?.dataCollection, workspace?.method?.analysisPlan, ...(workspace?.analyses ?? []).map((analysis: any) => analysis.content ?? "")].filter(Boolean).join(" ");
 }
 
 function parseCitationList(value: unknown): any[] {
@@ -140,12 +138,14 @@ function ArticleSearch({ projectId, savedExternalIds, initialQuery, onQueryConte
   </section>;
 }
 
-function DiscoveryWorkspace({ projectId, savedExternalIds, savedCount, context }: { projectId: number; savedExternalIds: Set<string>; savedCount: number; context: ReticulaSearchContext }) {
+function DiscoveryWorkspace({ projectId, savedExternalIds, savedCount, context, lapisProject, lapisWorkspace }: { projectId: number; savedExternalIds: Set<string>; savedCount: number; context: ReticulaSearchContext; lapisProject?: any; lapisWorkspace?: any }) {
   const [discoveryQuery, setDiscoveryQuery] = useState(context.query);
-  const reticulaUrl = createReticulaUrl(discoveryQuery, context);
+  const lapisForm = lapisProjectToNotebookForm(lapisProject);
+  const hasCompletedLapis = Boolean(lapisProject && lapisForm.researchQuestion.trim().length > 3);
+  const workspaceContext = lapisWorkspaceToReticulaContext(lapisWorkspace);
   return <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <div className="min-w-0 border border-slate-200 bg-white p-5 md:p-7"><div className="mb-6 flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 md:flex-row md:items-end"><div><p className="text-[10px] font-bold tracking-[.18em] text-amber-700">MESA DE DESCOBERTA</p><h2 className="mt-2 font-reading text-2xl font-black text-[#0A192F]">Mapeie antes de decidir.</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Combine uma pergunta precisa com fontes abertas, compare relevância e registre apenas estudos que merecem entrar no corpus.</p></div><span className="inline-flex w-fit items-center gap-2 border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900"><Search className="h-3.5 w-3.5" />Busca semântica</span></div>{context.fromReticula && <div className="mb-5 border-l-2 border-amber-400 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-950"><strong>Consulta recebida do Retícula.</strong> As coordenadas foram pré-preenchidas; revise os termos e acione a busca quando desejar.</div>}<ArticleSearch projectId={projectId} savedExternalIds={savedExternalIds} initialQuery={context.query} onQueryContextChange={setDiscoveryQuery} /></div>
-    <aside className="h-fit border border-slate-200 bg-[#0A192F] p-6 text-white xl:sticky xl:top-24"><p className="text-[10px] font-bold tracking-[.18em] text-amber-300">MAPA DA REVISÃO</p><h3 className="mt-3 font-reading text-xl font-black leading-snug">A descoberta ganha sentido dentro do corpus.</h3><p className="mt-3 text-sm leading-6 text-slate-300">A relevância orienta a triagem; a decisão de salvar continua sendo do pesquisador.</p><a href={reticulaUrl} target="_blank" rel="noreferrer" className="mt-5 block"><Button variant="outline" className="w-full rounded-none border-amber-300 bg-transparent text-amber-200 hover:bg-amber-300 hover:text-slate-950"><ExternalLink className="mr-2 h-4 w-4" />Abrir Retícula</Button></a><p className="mt-2 text-[11px] leading-4 text-slate-400">Abre uma nova aba com o contexto disponível; o Retícula só consulta fontes após sua confirmação.</p><div className="mt-5"><RisImportDialog projectId={projectId} /></div><div className="mt-6 space-y-3 border-y border-white/15 py-5"><div className="flex items-end justify-between"><span className="text-xs uppercase tracking-[.14em] text-slate-400">Corpus salvo</span><strong className="font-reading text-3xl text-amber-300">{savedCount}</strong></div><div className="border-l-2 border-amber-300 pl-3 text-xs leading-5 text-slate-300">A consulta combina Semantic Scholar, OpenAlex, Europe PMC/PubMed, Crossref, SciELO, OpenAIRE e arXiv. O CORE permanece indisponível enquanto a chave não for cadastrada.</div></div><div className="mt-6 space-y-3"><p className="text-[10px] font-bold tracking-[.16em] text-amber-300">RITUAL DE SELEÇÃO</p><ol className="space-y-3 text-sm leading-5 text-slate-200"><li><span className="mr-2 text-amber-300">01</span>Formule termos e relações.</li><li><span className="mr-2 text-amber-300">02</span>Compare resumo, autoria e relevância.</li><li><span className="mr-2 text-amber-300">03</span>Salve somente o que será rastreado.</li></ol></div></aside>
+    <aside className="h-fit border border-slate-200 bg-[#0A192F] p-6 text-white xl:sticky xl:top-24"><p className="text-[10px] font-bold tracking-[.18em] text-amber-300">MAPA DA REVISÃO</p><h3 className="mt-3 font-reading text-xl font-black leading-snug">A descoberta ganha sentido dentro do corpus.</h3><p className="mt-3 text-sm leading-6 text-slate-300">A relevância orienta a triagem; a decisão de salvar continua sendo do pesquisador.</p><div className="mt-5">{lapisProject ? <><ReticulaCoordinatesDialog form={lapisForm} workspaceContext={workspaceContext} disabled={!hasCompletedLapis} /><p className="mt-2 text-[11px] leading-4 text-slate-400">{hasCompletedLapis ? "Abre o Retícula com as três coordenadas propostas pelo caderno Lapis; revise-as antes da busca." : "Conclua a pergunta de pesquisa no caderno Lapis associado para liberar as coordenadas do Retícula."}</p></> : <div className="border border-white/20 bg-white/5 p-3"><p className="text-xs font-bold text-amber-200">Retícula após a concepção</p><p className="mt-1 text-[11px] leading-4 text-slate-300">Associe este projeto a um caderno Lapis para abrir o Retícula com tema, assunto e disciplina derivados da concepção.</p></div>}</div><div className="mt-5"><RisImportDialog projectId={projectId} /></div><div className="mt-6 space-y-3 border-y border-white/15 py-5"><div className="flex items-end justify-between"><span className="text-xs uppercase tracking-[.14em] text-slate-400">Corpus salvo</span><strong className="font-reading text-3xl text-amber-300">{savedCount}</strong></div><div className="border-l-2 border-amber-300 pl-3 text-xs leading-5 text-slate-300">A consulta combina Semantic Scholar, OpenAlex, Europe PMC/PubMed, Crossref, SciELO, OpenAIRE e arXiv. O CORE permanece indisponível enquanto a chave não for cadastrada.</div></div><div className="mt-6 space-y-3"><p className="text-[10px] font-bold tracking-[.16em] text-amber-300">RITUAL DE SELEÇÃO</p><ol className="space-y-3 text-sm leading-5 text-slate-200"><li><span className="mr-2 text-amber-300">01</span>Formule termos e relações.</li><li><span className="mr-2 text-amber-300">02</span>Compare resumo, autoria e relevância.</li><li><span className="mr-2 text-amber-300">03</span>Salve somente o que será rastreado.</li></ol></div></aside>
   </section>;
 }
 
@@ -237,10 +237,16 @@ function SynthesisView({ projectId, synthesis, articleCount, projectName }: { pr
 export default function Home() {
   const [location] = useLocation(); const page = pageTitles[location] ?? pageTitles["/"];
   const reticulaContext = useMemo(() => readReticulaSearchContext(), []);
+  const requestedLapisProjectId = useMemo(() => Number(new URLSearchParams(window.location.search).get("lapisProjectId")) || null, []);
   const [cartographerHash, setCartographerHash] = useState(() => window.location.hash);
   const { isAuthenticated } = useAuth();
   const { data: projects = [], isLoading: projectsLoading } = trpc.cartographer.projects.useQuery(undefined, { enabled: isAuthenticated });
   const [projectId, setProjectId] = useState<number | null>(null);
+  const { data: lapisProjects = [] } = trpc.lapis.projects.useQuery(undefined, { enabled: isAuthenticated });
+  const activeLapisProject = lapisProjects.find((item: any) => item.id === requestedLapisProjectId) ?? lapisProjects.find((item: any) => Number(item.reviewProjectId) === Number(projectId));
+  const activeLapisProjectId = activeLapisProject?.id ?? 0;
+  const lapisWorkspaceInput = useMemo(() => ({ lapisProjectId: activeLapisProjectId }), [activeLapisProjectId]);
+  const { data: activeLapisWorkspace } = trpc.lapis.workspace.useQuery(lapisWorkspaceInput, { enabled: Boolean(activeLapisProjectId) && isAuthenticated });
   useEffect(() => {
     const updateHash = () => setCartographerHash(window.location.hash);
     window.addEventListener("hashchange", updateHash);
@@ -254,7 +260,7 @@ export default function Home() {
   const data = overview.data; const articles = data?.articles ?? []; const savedIds = new Set(articles.map((article: any) => article.externalId));
   if (location === "/") return <DashboardLayout><AcademiaDashboard projectId={projectId} data={data} articles={articles} /></DashboardLayout>;
   const cartographerPanel = cartographerHash === "#cartographer-integridade" || cartographerHash === "#cartographer-citacoes" ? <CartographerEvidenceTools projectId={projectId} articles={articles} /> : null;
-  const inner = <><ProjectHeader projectId={projectId} onProjectChange={setProjectId} /><div className="mx-auto max-w-[1440px] px-6 py-8 md:px-10"><div className="mb-8 max-w-3xl"><p className="text-[10px] font-bold tracking-[.18em] text-amber-700">{page.eyebrow}</p><h1 className="mt-2 font-reading text-3xl font-black tracking-tight text-[#0A192F] md:text-4xl">{page.title}</h1><p className="mt-3 max-w-2xl leading-7 text-slate-600">{page.description}</p></div>{overview.isLoading ? <div className="flex h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-amber-700" /></div> : cartographerPanel ?? (location === "/search" || location === "/discover" ? <DiscoveryWorkspace projectId={projectId} savedExternalIds={savedIds} savedCount={articles.length} context={reticulaContext} /> : location === "/library" ? <LibraryView projectId={projectId} projectName={data?.project?.name ?? "Projeto AcademiaOS"} articles={articles} screenings={data?.screenings} possibleDuplicateGroups={data?.possibleDuplicateGroups} possibleOverlapPairs={data?.possibleOverlapPairs} prisma={data?.prisma} /> : location === "/synthesis" ? <><SynthesisView projectId={projectId} synthesis={data?.synthesis} articleCount={articles.length} projectName={data?.project?.name ?? "Projeto AcademiaOS"} /><NarrativeThemes projectId={projectId} articles={articles} themes={data?.narrativeThemes} /></> : <DashboardView projectId={projectId} data={data} articles={articles} />)}</div></>;
+  const inner = <><ProjectHeader projectId={projectId} onProjectChange={setProjectId} /><div className="mx-auto max-w-[1440px] px-6 py-8 md:px-10"><div className="mb-8 max-w-3xl"><p className="text-[10px] font-bold tracking-[.18em] text-amber-700">{page.eyebrow}</p><h1 className="mt-2 font-reading text-3xl font-black tracking-tight text-[#0A192F] md:text-4xl">{page.title}</h1><p className="mt-3 max-w-2xl leading-7 text-slate-600">{page.description}</p></div>{overview.isLoading ? <div className="flex h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-amber-700" /></div> : cartographerPanel ?? (location === "/search" || location === "/discover" ? <DiscoveryWorkspace projectId={projectId} savedExternalIds={savedIds} savedCount={articles.length} context={reticulaContext} lapisProject={activeLapisProject} lapisWorkspace={activeLapisWorkspace} /> : location === "/library" ? <LibraryView projectId={projectId} projectName={data?.project?.name ?? "Projeto AcademiaOS"} articles={articles} screenings={data?.screenings} possibleDuplicateGroups={data?.possibleDuplicateGroups} possibleOverlapPairs={data?.possibleOverlapPairs} prisma={data?.prisma} /> : location === "/synthesis" ? <><SynthesisView projectId={projectId} synthesis={data?.synthesis} articleCount={articles.length} projectName={data?.project?.name ?? "Projeto AcademiaOS"} /><NarrativeThemes projectId={projectId} articles={articles} themes={data?.narrativeThemes} /></> : <DashboardView projectId={projectId} data={data} articles={articles} />)}</div></>;
   return <DashboardLayout>{inner}</DashboardLayout>;
 }
 

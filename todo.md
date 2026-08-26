@@ -306,3 +306,4 @@
 - [x] Sincronizar no GitHub a integração Lapis–Retícula e a coleção de manuais publicada no AcademiaOS.
 - [x] Corrigir o acionamento Lapis–Retícula para abrir efetivamente o atlas com as três coordenadas revisadas.
 - [x] Armazenar o Manual Geral e os manuais individuais no Google Drive da conta inovalab.cte@gmail.com.
+- [x] Mover a abertura do Retícula do Lapis para o Cartographer, usando as coordenadas consolidadas do caderno Lapis ao iniciar a revisão de literatura.

@@ -3,7 +3,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import React, { useEffect, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
-import { LapisAutosaveScheduler, LapisCartographerCta, LapisExitGuard, LapisPdfExportButton, LapisReticulaCoordinatesDialog, LapisSaveStatus, LapisWorkspace, ResearchFlow } from "./Lapis";
+import { LapisAutosaveScheduler, LapisCartographerCta, LapisExitGuard, LapisPdfExportButton, LapisSaveStatus, LapisWorkspace, ResearchFlow } from "./Lapis";
+import { ReticulaCoordinatesDialog } from "@/components/ReticulaCoordinatesDialog";
 import { lapisDraftStorageKey, restoreLapisDraft, serializeLapisDraft, type LapisNotebookForm } from "@/lib/lapisNotebook";
 
 Object.defineProperties(HTMLElement.prototype, {
@@ -250,9 +251,9 @@ describe("LapisExitGuard", () => {
   it("abre o Retícula por ação síncrona com as três coordenadas, sem exigir pergunta formal", async () => {
     const user = userEvent.setup();
     const openWindow = vi.spyOn(window, "open").mockImplementation(() => null);
-    render(<LapisReticulaCoordinatesDialog form={{ ...persistedForm, researchQuestion: "" }} disabled={false} workspaceContext="Análise de sensoriamento remoto" />);
+    render(<ReticulaCoordinatesDialog form={{ ...persistedForm, researchQuestion: "" }} disabled={false} workspaceContext="Análise de sensoriamento remoto" />);
 
-    await user.click(screen.getByRole("button", { name: "Abrir Retícula" }));
+    await user.click(screen.getByRole("button", { name: "Abrir Retícula com coordenadas do Lapis" }));
     await user.click(await screen.findByRole("button", { name: "Abrir Retícula com coordenadas" }));
 
     expect(openWindow).toHaveBeenCalledTimes(1);
