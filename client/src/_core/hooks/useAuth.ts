@@ -51,6 +51,10 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
+    localStorage.setItem(
+      "manus-runtime-user-info",
+      JSON.stringify(meQuery.data)
+    );
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
@@ -64,17 +68,6 @@ export function useAuth(options?: UseAuthOptions) {
     logoutMutation.error,
     logoutMutation.isPending,
   ]);
-
-  useEffect(() => {
-    // Persistência auxiliar não pode impedir a renderização quando o navegador
-    // bloqueia armazenamento local (por exemplo, sessão privada ou estado após
-    // interrupção). A autenticação real continua no cookie/servidor.
-    try {
-      localStorage.setItem("manus-runtime-user-info", JSON.stringify(meQuery.data));
-    } catch {
-      // O aplicativo permanece funcional sem essa conveniência local.
-    }
-  }, [meQuery.data]);
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;

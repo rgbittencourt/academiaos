@@ -298,7 +298,3 @@
 - [x] Adicionar no Cartographer um botão para abrir o Retícula em nova aba com o contexto de levantamento disponível.
 - [x] Ampliar a deduplicação do Cartographer com revisão assistida de títulos semelhantes e decisão explícita do pesquisador.
 - [x] Validar, publicar e sincronizar no GitHub e Cloudflare as evoluções de interoperabilidade dos dois produtos.
-- [x] Diagnosticar e corrigir a falha grave relatada no Dashboard e em Meus Projetos após a publicação de interoperabilidade.
-- [x] Restaurar todo o AcademiaOS após a regressão geral relatada, preservando projetos e banco de dados.
-- [x] Verificar se a interrupção deixou recursos publicados, cache ou sessão em estado inconsistente antes de restaurar código.
-- [ ] Sincronizar no GitHub a recuperação publicada do AcademiaOS, excluindo dados e arquivos internos.
