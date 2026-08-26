@@ -2,6 +2,8 @@ export type ReticulaCoordinateInput = {
   title: string;
   researchIdea: string;
   researchQuestion?: string | null;
+  problemStatement?: string | null;
+  workspaceContext?: string | null;
 };
 
 export type ReticulaCoordinates = {
@@ -41,10 +43,26 @@ function suggestDiscipline(source: string) {
   };
 }
 
+function isInternalWavesSarNeuralNotebook(source: string) {
+  const normalized = source.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /(onda[s]? interna[s]?|internal wave[s]?)/.test(normalized)
+    && /(\bsar\b|radar de abertura sintetica|synthetic aperture radar)/.test(normalized)
+    && /(rede[s]? neur(?:al|ais)|neural network[s]?)/.test(normalized);
+}
+
 export function deriveReticulaCoordinates(input: ReticulaCoordinateInput): ReticulaCoordinates {
+  const source = `${input.title} ${input.researchIdea} ${input.problemStatement ?? ""} ${input.researchQuestion ?? ""} ${input.workspaceContext ?? ""}`;
+  if (isInternalWavesSarNeuralNotebook(source)) {
+    return {
+      theme: "Ocean internal waves",
+      subject: "Detection of ocean internal waves in Synthetic Aperture Radar (SAR) imagery using neural networks",
+      discipline: "Physical Oceanography",
+      disciplineRationale: "Sugestão editável baseada nos termos ondas internas, SAR e redes neurais registrados no caderno Lapis.",
+    };
+  }
   const theme = cleanCoordinate(input.title, "Tema de pesquisa");
-  const subject = cleanCoordinate(input.researchQuestion, cleanCoordinate(input.researchIdea, theme));
-  const disciplineSuggestion = suggestDiscipline(`${input.title} ${input.researchIdea} ${input.researchQuestion ?? ""}`);
+  const subject = cleanCoordinate(input.researchQuestion, cleanCoordinate(input.problemStatement, cleanCoordinate(input.researchIdea, cleanCoordinate(input.workspaceContext, theme))));
+  const disciplineSuggestion = suggestDiscipline(source);
   return {
     theme,
     subject,

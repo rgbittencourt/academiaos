@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import React, { useEffect, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
-import { LapisAutosaveScheduler, LapisCartographerCta, LapisExitGuard, LapisPdfExportButton, LapisSaveStatus, LapisWorkspace, ResearchFlow } from "./Lapis";
+import { LapisAutosaveScheduler, LapisCartographerCta, LapisExitGuard, LapisPdfExportButton, LapisReticulaCoordinatesDialog, LapisSaveStatus, LapisWorkspace, ResearchFlow } from "./Lapis";
 import { lapisDraftStorageKey, restoreLapisDraft, serializeLapisDraft, type LapisNotebookForm } from "@/lib/lapisNotebook";
 
 Object.defineProperties(HTMLElement.prototype, {
@@ -245,6 +245,26 @@ describe("LapisExitGuard", () => {
     expect((enabled as HTMLButtonElement).disabled).toBe(false);
     await user.click(enabled);
     expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it("abre o Retícula por ação síncrona com as três coordenadas, sem exigir pergunta formal", async () => {
+    const user = userEvent.setup();
+    const openWindow = vi.spyOn(window, "open").mockImplementation(() => null);
+    render(<LapisReticulaCoordinatesDialog form={{ ...persistedForm, researchQuestion: "" }} disabled={false} workspaceContext="Análise de sensoriamento remoto" />);
+
+    await user.click(screen.getByRole("button", { name: "Abrir Retícula" }));
+    await user.click(await screen.findByRole("button", { name: "Abrir Retícula com coordenadas" }));
+
+    expect(openWindow).toHaveBeenCalledTimes(1);
+    const [url, target, features] = openWindow.mock.calls[0];
+    const deepLink = new URL(String(url));
+    expect(target).toBe("_blank");
+    expect(features).toBe("noopener,noreferrer");
+    expect(deepLink.searchParams.get("theme")).toBe("Ondas internas e redes neurais");
+    expect(deepLink.searchParams.get("subject")).toBe("A identificação manual é lenta.");
+    expect(deepLink.searchParams.get("discipline")).toBe("Oceanografia Física e Sensoriamento Remoto");
+    expect(deepLink.searchParams.get("from")).toBe("academiaos");
+    openWindow.mockRestore();
   });
 
   it("associa um projeto Cartographer pelo seletor acessível do workspace e preserva a escolha no rascunho", async () => {
