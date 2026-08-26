@@ -9,7 +9,7 @@ import { ExternalLink } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export function ReticulaCoordinatesDialog({ form, workspaceContext, disabled, triggerLabel = "Abrir Retícula com coordenadas do Lapis" }: { form: LapisNotebookForm; workspaceContext?: string; disabled: boolean; triggerLabel?: string }) {
+export function ReticulaCoordinatesDialog({ form, workspaceContext, disabled, triggerLabel = "Abrir Retícula com coordenadas do Lapis", triggerClassName }: { form: LapisNotebookForm; workspaceContext?: string; disabled: boolean; triggerLabel?: string; triggerClassName?: string }) {
   const [open, setOpen] = useState(false);
   const [coordinates, setCoordinates] = useState(() => deriveReticulaCoordinates({ ...form, workspaceContext }));
 
@@ -30,7 +30,7 @@ export function ReticulaCoordinatesDialog({ form, workspaceContext, disabled, tr
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>
-      <Button type="button" disabled={disabled} variant="outline" className="w-full rounded-none border-amber-300 bg-transparent text-amber-200 hover:bg-amber-300 hover:text-slate-950">
+      <Button type="button" disabled={disabled} variant="outline" className={triggerClassName ?? "w-full rounded-none border-amber-300 bg-transparent text-amber-200 hover:bg-amber-300 hover:text-slate-950"}>
         <span className="inline-flex min-w-0 items-center justify-center gap-2">
           <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0" />
           <span className="truncate">{triggerLabel}</span>

@@ -248,6 +248,13 @@ describe("LapisExitGuard", () => {
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 
+  it("mantém o acesso ao Retícula no Lapis sem substituir a transição ao Cartographer", async () => {
+    render(<LapisWorkspace />);
+
+    expect(await screen.findByRole("button", { name: "Abrir Retícula" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Ir para Cartographer" })).toBeTruthy();
+  });
+
   it("abre o Retícula por ação síncrona com as três coordenadas, sem exigir pergunta formal", async () => {
     const user = userEvent.setup();
     const openWindow = vi.spyOn(window, "open").mockImplementation(() => null);

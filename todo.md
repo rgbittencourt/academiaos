@@ -308,3 +308,5 @@
 - [x] Armazenar o Manual Geral e os manuais individuais no Google Drive da conta inovalab.cte@gmail.com.
 - [x] Mover a abertura do Retícula do Lapis para o Cartographer, usando as coordenadas consolidadas do caderno Lapis ao iniciar a revisão de literatura.
 - [x] Corrigir o desalinhamento do ícone no botão “Abrir Retícula com coordenadas do Lapis” exibido no Cartographer.
+- [x] Resolver automaticamente, no Cartographer, o caderno Lapis associado ao projeto ativo para abrir o Retícula sem passagem obrigatória pelo Lapis.
+- [x] Restaurar o atalho editável do Retícula no Lapis e garantir que ambos os pontos de entrada usem as mesmas três coordenadas do caderno associado.

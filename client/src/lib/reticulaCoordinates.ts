@@ -13,6 +13,18 @@ export type ReticulaCoordinates = {
   disciplineRationale: string;
 };
 
+type LapisWorkspaceContextSource = {
+  method?: {
+    studyDesign?: string | null;
+    setting?: string | null;
+    population?: string | null;
+    variables?: string | null;
+    dataCollection?: string | null;
+    analysisPlan?: string | null;
+  } | null;
+  analyses?: Array<{ content?: string | null }> | null;
+};
+
 const RETICULA_URL = "https://reticula-atlas-ideias.rogerio-bittencourt-1a9.workers.dev/";
 const MAX_COORDINATE_LENGTH = 320;
 
@@ -48,6 +60,18 @@ function isInternalWavesSarNeuralNotebook(source: string) {
   return /(onda[s]? interna[s]?|internal wave[s]?)/.test(normalized)
     && /(\bsar\b|radar de abertura sintetica|synthetic aperture radar)/.test(normalized)
     && /(rede[s]? neur(?:al|ais)|neural network[s]?)/.test(normalized);
+}
+
+export function lapisWorkspaceToReticulaContext(workspace?: LapisWorkspaceContextSource | null) {
+  return [
+    workspace?.method?.studyDesign,
+    workspace?.method?.setting,
+    workspace?.method?.population,
+    workspace?.method?.variables,
+    workspace?.method?.dataCollection,
+    workspace?.method?.analysisPlan,
+    ...(workspace?.analyses ?? []).map(analysis => analysis.content ?? ""),
+  ].filter(Boolean).join(" ");
 }
 
 export function deriveReticulaCoordinates(input: ReticulaCoordinateInput): ReticulaCoordinates {
