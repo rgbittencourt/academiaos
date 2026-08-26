@@ -39,9 +39,13 @@ O repositório contém uma aplicação full-stack em **React 19**, **Vite**, **T
 | `pnpm test` | Executa a suíte de testes automatizados. |
 | `pnpm build` | Gera a compilação do cliente e do servidor. |
 
+## Manuais de uso
+
+A coleção de documentação operacional está disponível em [`docs/manuais`](./docs/manuais/INDICE.md). Ela contém um **Manual Geral do AcademiaOS** e guias separados para Lapis, Cartographer, Método, Prereg, Vault, Qualia, Analista, Scriptorium, Matchmaker e Vigil. Os manuais descrevem os fluxos implementados, a revisão humana necessária e os limites de cada módulo.
+
 ## Integrações de descoberta
 
-O Cartographer agrega fontes acadêmicas abertas, incluindo Semantic Scholar, OpenAlex, Europe PMC, PubMed, Crossref, SciELO, OpenAIRE e arXiv. O **Retícula — Atlas de Literatura Científica** é uma implementação própria do Prof. Rogério G. Bittencourt, atualmente hospedada no ChatGPT Sites. A estratégia de intercâmbio está documentada em [`INTEGRACAO_RETICULA.md`](./INTEGRACAO_RETICULA.md) e será configurada apenas após a definição do endereço público e do mecanismo autorizado de troca de dados.
+O Cartographer agrega fontes acadêmicas abertas, incluindo Semantic Scholar, OpenAlex, Europe PMC, PubMed, Crossref, SciELO, OpenAIRE e arXiv. O **Retícula — Atlas de Literatura Científica** é uma implementação própria do Prof. Rogério G. Bittencourt, publicada em [reticula-atlas-ideias.rogerio-bittencourt-1a9.workers.dev](https://reticula-atlas-ideias.rogerio-bittencourt-1a9.workers.dev/). A estratégia de intercâmbio está documentada em [`INTEGRACAO_RETICULA.md`](./INTEGRACAO_RETICULA.md): o Retícula exporta RIS, BibTeX e CSV, enquanto o Lapis prepara coordenadas revisáveis de tema, assunto e disciplina para abri-lo em outra aba sem iniciar uma busca automaticamente.
 
 ## Publicação responsável
 

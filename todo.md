@@ -298,3 +298,9 @@
 - [x] Adicionar no Cartographer um botão para abrir o Retícula em nova aba com o contexto de levantamento disponível.
 - [x] Ampliar a deduplicação do Cartographer com revisão assistida de títulos semelhantes e decisão explícita do pesquisador.
 - [x] Validar, publicar e sincronizar no GitHub e Cloudflare as evoluções de interoperabilidade dos dois produtos.
+- [x] Inventariar as ferramentas e os fluxos realmente implementados para a coleção de manuais do AcademiaOS.
+- [x] Produzir um manual operacional completo para cada ferramenta do AcademiaOS.
+- [x] Produzir um Manual Geral do AcademiaOS com o percurso integrado, autenticação e limites de uso.
+- [x] Revisar, organizar e disponibilizar os manuais finais em formato reutilizável.
+- [x] Implementar a prévia revisável de tema, assunto e disciplina do Lapis no atalho do AcademiaOS para o Retícula.
+- [ ] Sincronizar no GitHub a integração Lapis–Retícula e a coleção de manuais publicada no AcademiaOS.
