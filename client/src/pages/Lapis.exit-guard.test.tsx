@@ -253,7 +253,13 @@ describe("LapisExitGuard", () => {
     const openWindow = vi.spyOn(window, "open").mockImplementation(() => null);
     render(<ReticulaCoordinatesDialog form={{ ...persistedForm, researchQuestion: "" }} disabled={false} workspaceContext="Análise de sensoriamento remoto" />);
 
-    await user.click(screen.getByRole("button", { name: "Abrir Retícula com coordenadas do Lapis" }));
+    const trigger = screen.getByRole("button", { name: "Abrir Retícula com coordenadas do Lapis" });
+    const triggerContent = trigger.querySelector("span.inline-flex");
+    expect(triggerContent).toBeTruthy();
+    expect(triggerContent?.querySelector("svg")).toBeTruthy();
+    expect(triggerContent?.textContent).toContain("Abrir Retícula com coordenadas do Lapis");
+
+    await user.click(trigger);
     await user.click(await screen.findByRole("button", { name: "Abrir Retícula com coordenadas" }));
 
     expect(openWindow).toHaveBeenCalledTimes(1);

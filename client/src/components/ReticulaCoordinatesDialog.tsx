@@ -30,7 +30,12 @@ export function ReticulaCoordinatesDialog({ form, workspaceContext, disabled, tr
 
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild>
-      <Button type="button" disabled={disabled} variant="outline" className="w-full rounded-none border-amber-300 bg-transparent text-amber-200 hover:bg-amber-300 hover:text-slate-950"><ExternalLink className="mr-2 h-4 w-4" />{triggerLabel}</Button>
+      <Button type="button" disabled={disabled} variant="outline" className="w-full rounded-none border-amber-300 bg-transparent text-amber-200 hover:bg-amber-300 hover:text-slate-950">
+        <span className="inline-flex min-w-0 items-center justify-center gap-2">
+          <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0" />
+          <span className="truncate">{triggerLabel}</span>
+        </span>
+      </Button>
     </DialogTrigger>
     <DialogContent className="max-w-2xl">
       <DialogHeader>
